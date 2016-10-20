@@ -29,7 +29,10 @@ public:
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 private:
 
+	int gameState;
+
 	//List of Game Entities, Meshes, and Materials
+	std::vector<GameEntity*> menuEntities;
 	std::vector<GameEntity*> gameEntities;
 	std::vector<GameEntity*> currentGameEntities;
 	std::vector<Mesh*> meshes;
@@ -45,6 +48,7 @@ private:
 	//Textures & samplers
 	ID3D11ShaderResourceView* gamefield;
 	ID3D11ShaderResourceView* bricks;
+	ID3D11ShaderResourceView* menu;
 	ID3D11SamplerState* sampler1;
 
 	bool mouseDown;
@@ -53,6 +57,7 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
+	void CreateMenu();
 	void CreateGameField();
 
 	// Wrappers for DirectX shaders to provide simplified functionality

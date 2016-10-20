@@ -98,9 +98,9 @@ void Game::Init()
 
 	CreateGameField();
 
-	dirLight1.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
+	dirLight1.AmbientColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	dirLight1.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
-	dirLight1.Direction = XMFLOAT3(1, -1, 0);
+	dirLight1.Direction = XMFLOAT3(0, 0, -1);
 
 	dirLight2.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	dirLight2.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
@@ -116,6 +116,9 @@ void Game::Init()
 		&dirLight2,					//The address of the data to copy
 		sizeof(DirectionalLight));  //Size of data to copy
 
+	CreateMenu();
+
+	gameState = 0;
 }
 
 // --------------------------------------------------------
@@ -188,6 +191,14 @@ void Game::CreateBasicGeometry()
 		&bricks
 	);
 
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Debug/Textures/mainmenu.png",
+		0,
+		&menu
+		);
+
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -205,13 +216,17 @@ void Game::CreateBasicGeometry()
 	//Creating materials
 	materials.push_back(new Material(vertexShader, pixelShader, gamefield, sampler1));		// materials[0] -> basic material, grassy field texture
 	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));			// materials[1] -> basic material, brick texture
+	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler1));
 	
 	//Setting material Color -Debug
-	//materials[0]->SetSurfaceColor(XMFLOAT4(.2, .3, .1, 1));
+	//materials[2]->SetSurfaceColor(XMFLOAT4(1, 1, 1, 1));
 
 	//Creating GameEntities
 	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));						// gameEntities[0] -> Game Field (grass)
-	gameEntities.push_back(new GameEntity(meshes[1], materials[0]));						// gameEntities[1] -> Ball (brick)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));						// gameEntities[1] -> Ball (brick)
+
+	//Creating MenuEntities
+	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));						// menuEntities[0] -> Menu
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -220,6 +235,11 @@ void Game::CreateBasicGeometry()
 	/*currentGameEntities.push_back(gameEntities[0]);*/
 
 	
+}
+
+void Game::CreateMenu() {
+	menuEntities[0]->Rotate(0, 0, PI / 2.0);
+	menuEntities[0]->SetScale(4, 7, 1);
 }
 
 void Game::CreateGameField() {
@@ -233,9 +253,7 @@ void Game::CreateGameField() {
 	gameEntities[1]->SetScale(.5f, .5f, .5f);
 	gameEntities[1]->SetTranslation(0, 0, -1);
 	currentGameEntities.push_back(gameEntities[1]);
-
 }
-
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
@@ -259,27 +277,34 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
-	// Move the triangle a little
-	float sinTime = (sin(totalTime) + 2.0f) / 10.0f;
-	float cosTime = cos(totalTime);
+	if (gameState == 0) {
+		if (GetAsyncKeyState(VK_SPACE) & 0x8000) 
+		{
+			gameState = 1;
+		}
+	}
+	if (gameState == 1) {
+		// Move the triangle a little
+		float sinTime = (sin(totalTime) + 2.0f) / 10.0f;
+		float cosTime = cos(totalTime);
 
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
-	{ 
-		gameEntities[1]->Move(deltaTime, 0, 0);
+		if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
+		{
+			gameEntities[1]->Move(deltaTime, 0, 0);
+		}
+		if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
+		{
+			gameEntities[1]->Move(-deltaTime, 0, 0);
+		}
+		if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
+		{
+			gameEntities[1]->Move(0, deltaTime, 0);
+		}
+		if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
+		{
+			gameEntities[1]->Move(0, -deltaTime, 0);
+		}
 	}
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
-	{
-		gameEntities[1]->Move(-deltaTime, 0, 0);
-	}
-	if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
-	{
-		gameEntities[1]->Move(0, deltaTime, 0);
-	}
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
-	{
-		gameEntities[1]->Move(0, -deltaTime, 0);
-	}
-	
 	mainCamera->Update(deltaTime);
 }
 
@@ -302,7 +327,12 @@ void Game::Draw(float deltaTime, float totalTime)
 		0);
 
 	//Send list of Game Entities to the Renderer class
-	renderer->SetGameEntityList(currentGameEntities);
+	if (gameState == 0) {
+		renderer->SetGameEntityList(menuEntities);
+	}
+	if (gameState == 1) {
+		renderer->SetGameEntityList(currentGameEntities);
+	}
 
 	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix());
 
