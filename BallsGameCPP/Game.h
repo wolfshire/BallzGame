@@ -48,6 +48,7 @@ private:
 	//Textures & samplers
 	ID3D11ShaderResourceView* gamefield;
 	ID3D11ShaderResourceView* bricks;
+	ID3D11ShaderResourceView* woodTexture; 
 	ID3D11ShaderResourceView* menu;
 	ID3D11SamplerState* sampler1;
 

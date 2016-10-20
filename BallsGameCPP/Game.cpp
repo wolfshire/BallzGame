@@ -5,7 +5,7 @@
 // For the DirectX Math library
 using namespace DirectX;
 
-#define PI 3.14159265359
+#define PI 3.14159265359f
 
 // --------------------------------------------------------
 // Constructor
@@ -53,6 +53,8 @@ Game::~Game()
 	sampler1->Release();
 	gamefield->Release();
 	bricks->Release();
+	woodTexture->Release();
+	menu->Release();
 
 	//Deleting materials
 	for each (Material* name in materials)
@@ -66,6 +68,10 @@ Game::~Game()
 	}
 	//Deleting GameEntitys
 	for each (GameEntity* name in gameEntities)
+	{
+		delete name;
+	}
+	for each(GameEntity* name in menuEntities)
 	{
 		delete name;
 	}
@@ -118,7 +124,7 @@ void Game::Init()
 
 	CreateMenu();
 
-	gameState = 0;
+	gameState = 1;
 }
 
 // --------------------------------------------------------
@@ -178,7 +184,7 @@ void Game::CreateBasicGeometry()
 	HRESULT check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Debug/Textures/field.jpg",
+		L"Assets/Textures/field.jpg",
 		0,
 		&gamefield
 	);
@@ -186,7 +192,7 @@ void Game::CreateBasicGeometry()
 	check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Debug/Textures/bricks.jpg",
+		L"Assets/Textures/bricks.jpg",
 		0,
 		&bricks
 	);
@@ -194,10 +200,18 @@ void Game::CreateBasicGeometry()
 	check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Debug/Textures/mainmenu.png",
+		L"Assets/Textures/mainmenu.png",
 		0,
 		&menu
-		);
+	);
+
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/wood.jpg",
+		0,
+		&woodTexture
+	);
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -210,23 +224,29 @@ void Game::CreateBasicGeometry()
 	check = device->CreateSamplerState(&samplerDesc, &sampler1);
 
 	//Creating Meshes
-	meshes.push_back(new Mesh("Models/cube.obj", device));									//meshes[0] - > Cube Model
-	meshes.push_back(new Mesh("Models/sphere.obj", device));								//meshes[1] - > Sphere Model
+	meshes.push_back(new Mesh("../Assets/Models/cube.obj", device));									//meshes[0] - > Cube Model
+	meshes.push_back(new Mesh("../Assets/Models/sphere.obj", device));									//meshes[1] - > Sphere Model
 
 	//Creating materials
-	materials.push_back(new Material(vertexShader, pixelShader, gamefield, sampler1));		// materials[0] -> basic material, grassy field texture
-	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));			// materials[1] -> basic material, brick texture
-	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler1));
+	materials.push_back(new Material(vertexShader, pixelShader, gamefield, sampler1));					// materials[0] -> basic material, grassy field texture
+	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));						// materials[1] -> basic material, brick texture
+	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler1));						// materials[2] -> basic material, main menu screen
+	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler1));				// materials[3] -> basic material, wood texture
+
 	
 	//Setting material Color -Debug
 	//materials[2]->SetSurfaceColor(XMFLOAT4(1, 1, 1, 1));
 
 	//Creating GameEntities
-	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));						// gameEntities[0] -> Game Field (grass)
-	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));						// gameEntities[1] -> Ball (brick)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));									// gameEntities[0] -> Game Field (Cube/Grass)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[1] -> Ball (Sphere/Brick)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[2] -> Top Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[3] -> Bottom Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[4] -> Left Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[5] -> Right Wall (Cube/Wood)
 
 	//Creating MenuEntities
-	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));						// menuEntities[0] -> Menu
+	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -238,21 +258,44 @@ void Game::CreateBasicGeometry()
 }
 
 void Game::CreateMenu() {
-	menuEntities[0]->Rotate(0, 0, PI / 2.0);
-	menuEntities[0]->SetScale(4, 7, 1);
+	menuEntities[0]->Rotate(0.0f, 0.0f, PI / 2.0f);
+	menuEntities[0]->SetScale(4.0f, 7.0f, 1.0f);
 }
 
 void Game::CreateGameField() {
 
 	//creating the floor
-	gameEntities[0]->Rotate(0, 0, PI/2.0);
-	gameEntities[0]->SetScale(3.2, 5.5, 1);
+	gameEntities[0]->Rotate(0.0f, 0.0f, PI/2.0f);
+	gameEntities[0]->SetScale(3.2f, 5.5f, 1.0f);
 	currentGameEntities.push_back(gameEntities[0]);
 
 	//Adding a ball
 	gameEntities[1]->SetScale(.5f, .5f, .5f);
-	gameEntities[1]->SetTranslation(0, 0, -1);
+	gameEntities[1]->SetTranslation(0.0f, 0.0f, -.75f);
 	currentGameEntities.push_back(gameEntities[1]);
+
+	//Creating the walls
+	//top
+	gameEntities[2]->Rotate(0.0f, PI / 2.0f, 0.0f);
+	gameEntities[2]->SetScale(1.5f, .25f, 5.5f);
+	gameEntities[2]->SetTranslation(0.25f, 1.73f, 0.0f);
+	currentGameEntities.push_back(gameEntities[2]);
+	//bottom
+	gameEntities[3]->Rotate(0.0f, PI / 2.0f, 0.0f);
+	gameEntities[3]->SetScale(1.5f, .25f, 5.5f);
+	gameEntities[3]->SetTranslation(0.25f, -1.73f, 0.0f);
+	currentGameEntities.push_back(gameEntities[3]);
+	//left
+	gameEntities[4]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
+	gameEntities[4]->SetScale(1.5f, .5f, 3.72f);
+	gameEntities[4]->SetTranslation(0.25f, -3.0f, 0.0f);
+	currentGameEntities.push_back(gameEntities[4]);
+	//right
+	gameEntities[5]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
+	gameEntities[5]->SetScale(1.5f, .5f, 3.72f);
+	gameEntities[5]->SetTranslation(0.25f, 3.0f, 0.0f);
+	currentGameEntities.push_back(gameEntities[5]);
+
 }
 
 // --------------------------------------------------------
