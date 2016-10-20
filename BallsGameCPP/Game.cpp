@@ -5,6 +5,8 @@
 // For the DirectX Math library
 using namespace DirectX;
 
+#define PI 3.14159265359
+
 // --------------------------------------------------------
 // Constructor
 //
@@ -29,13 +31,6 @@ Game::Game(HINSTANCE hInstance)
 	// Do we want a console window?  Probably only in debug mode
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
-	printf("1 ----------- Cube\n");
-	printf("2 ----------- Cone\n");
-	printf("3 ----------- Cylinder\n");
-	printf("4 ----------- Helix\n");
-	printf("5 ----------- Sphere\n");
-	printf("6 ----------- Torus\n");
-
 #endif
 }
 
@@ -56,7 +51,7 @@ Game::~Game()
 	delete mainCamera;
 
 	sampler1->Release();
-	texture1->Release();
+	gamefield->Release();
 	bricks->Release();
 
 	//Deleting materials
@@ -100,6 +95,8 @@ void Game::Init()
 	mainCamera = new Camera(width, height);
 
 	mouseDown = false;
+
+	CreateGameField();
 
 	dirLight1.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
 	dirLight1.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
@@ -178,9 +175,9 @@ void Game::CreateBasicGeometry()
 	HRESULT check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Debug/Textures/texture1.jpg",
+		L"Debug/Textures/field.jpg",
 		0,
-		&texture1
+		&gamefield
 	);
 
 	check = CreateWICTextureFromFile(
@@ -202,35 +199,41 @@ void Game::CreateBasicGeometry()
 	check = device->CreateSamplerState(&samplerDesc, &sampler1);
 
 	//Creating Meshes
-	meshes.push_back(new Mesh("Models/cube.obj", device));				//meshes[0] - > Cube Model
-	meshes.push_back(new Mesh("Models/cone.obj", device));				//meshes[1] - > Cone Model
-	meshes.push_back(new Mesh("Models/cylinder.obj", device));			//meshes[2] - > Cylinder Model
-	meshes.push_back(new Mesh("Models/helix.obj", device));				//meshes[3] - > Helix Model
-	meshes.push_back(new Mesh("Models/sphere.obj", device));			//meshes[4] - > Sphere Model
-	meshes.push_back(new Mesh("Models/torus.obj", device));				//meshes[5] - > Torus Model
+	meshes.push_back(new Mesh("Models/cube.obj", device));									//meshes[0] - > Cube Model
+	meshes.push_back(new Mesh("Models/sphere.obj", device));								//meshes[1] - > Sphere Model
 
 	//Creating materials
-	materials.push_back(new Material(vertexShader, pixelShader, texture1, sampler1));		// materials[0] -> basic material, cement texture
-	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));		// materials[0] -> basic material, brick texture
+	materials.push_back(new Material(vertexShader, pixelShader, gamefield, sampler1));		// materials[0] -> basic material, grassy field texture
+	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));			// materials[1] -> basic material, brick texture
 	
 	//Setting material Color -Debug
 	//materials[0]->SetSurfaceColor(XMFLOAT4(.2, .3, .1, 1));
 
 	//Creating GameEntities
-	gameEntities.push_back(new GameEntity(meshes[0], materials[1]));	// gameEntities[0] -> Cube
-	gameEntities.push_back(new GameEntity(meshes[1], materials[0]));	// gameEntities[0] -> Cone
-	gameEntities.push_back(new GameEntity(meshes[2], materials[1]));	// gameEntities[0] -> Cylinder
-	gameEntities.push_back(new GameEntity(meshes[3], materials[0]));	// gameEntities[0] -> Helix
-	gameEntities.push_back(new GameEntity(meshes[4], materials[0]));	// gameEntities[0] -> Sphere
-	gameEntities.push_back(new GameEntity(meshes[5], materials[0]));	// gameEntities[0] -> Torus
+	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));						// gameEntities[0] -> Game Field (grass)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[0]));						// gameEntities[1] -> Ball (brick)
 
 	//Setting Scales
-	for(int i = 0; i < gameEntities.size(); i++)
-		gameEntities[i]->SetScale(2, 2, 2);
+	/*for(int i = 0; i < gameEntities.size(); i++)
+		gameEntities[i]->SetScale(2, 2, 2);*/
 
-	currentGameEntities.push_back(gameEntities[0]);
+	/*currentGameEntities.push_back(gameEntities[0]);*/
 
 	
+}
+
+void Game::CreateGameField() {
+
+	//creating the floor
+	gameEntities[0]->Rotate(0, 0, PI/2.0);
+	gameEntities[0]->SetScale(3.2, 5.5, 1);
+	currentGameEntities.push_back(gameEntities[0]);
+
+	//Adding a ball
+	gameEntities[1]->SetScale(.5f, .5f, .5f);
+	gameEntities[1]->SetTranslation(0, 0, -1);
+	currentGameEntities.push_back(gameEntities[1]);
+
 }
 
 
@@ -260,35 +263,24 @@ void Game::Update(float deltaTime, float totalTime)
 	float sinTime = (sin(totalTime) + 2.0f) / 10.0f;
 	float cosTime = cos(totalTime);
 
-	if (GetAsyncKeyState('1') & 0x8000) { //Cube
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[0]);
+	if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
+	{ 
+		gameEntities[1]->Move(deltaTime, 0, 0);
 	}
-	else if (GetAsyncKeyState('2') & 0x8000) { //Cone
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[1]);
+	if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
+	{
+		gameEntities[1]->Move(-deltaTime, 0, 0);
 	}
-	else if (GetAsyncKeyState('3') & 0x8000) { //Cylinder
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[2]);
+	if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
+	{
+		gameEntities[1]->Move(0, deltaTime, 0);
 	}
-	else if (GetAsyncKeyState('4') & 0x8000) { //Helix
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[3]);
-	}
-	else if (GetAsyncKeyState('5') & 0x8000) { //Sphere
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[4]);
-	}
-	else if (GetAsyncKeyState('6') & 0x8000) { //Torus
-		currentGameEntities.clear();
-		currentGameEntities.push_back(gameEntities[5]);
+	if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
+	{
+		gameEntities[1]->Move(0, -deltaTime, 0);
 	}
 	
 	mainCamera->Update(deltaTime);
-
-	currentGameEntities[0]->SetTranslation(0, 0, 0);
-	//currentGameEntities[0]->Rotate(0, deltaTime, 0); 
 }
 
 // --------------------------------------------------------

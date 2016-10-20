@@ -43,7 +43,7 @@ private:
 	DirectionalLight dirLight2;
 
 	//Textures & samplers
-	ID3D11ShaderResourceView* texture1;
+	ID3D11ShaderResourceView* gamefield;
 	ID3D11ShaderResourceView* bricks;
 	ID3D11SamplerState* sampler1;
 
@@ -53,6 +53,7 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
+	void CreateGameField();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
