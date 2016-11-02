@@ -56,6 +56,7 @@ Game::~Game()
 	woodTexture->Release();
 	menu->Release();
 
+	if (ballManager) delete ballManager;
 	//Deleting materials
 	for each (Material* name in materials)
 	{
@@ -83,6 +84,8 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	ballManager = new BallManager();
+
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -99,6 +102,8 @@ void Game::Init()
 	renderer = new Renderer(context);
 
 	mainCamera = new Camera(width, height);
+
+	
 
 	mouseDown = false;
 
@@ -248,6 +253,8 @@ void Game::CreateBasicGeometry()
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 
+	ballManager->addBall(gameEntities[1], myVector(1, 1, 1), myVector(0, 1, 0), 1, 1);
+
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
 		gameEntities[i]->SetScale(2, 2, 2);*/
@@ -349,6 +356,7 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 	}
 	mainCamera->Update(deltaTime);
+	ballManager->Update(deltaTime);
 }
 
 // --------------------------------------------------------
