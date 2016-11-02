@@ -11,6 +11,7 @@ public:
 
 	XMFLOAT4X4 getViewMatrix() { return viewMatrix; }
 	XMFLOAT4X4 getProjectionMatrix() { return projectionMatrix; }
+	XMFLOAT3 getPosition() { return position; }
 
 	void rotateX(bool dir);
 	void rotateY(bool dir);

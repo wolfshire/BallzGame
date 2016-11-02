@@ -11,3 +11,11 @@ struct DirectionalLight
 	DirectX::XMFLOAT3 Direction;
 
 };
+
+struct PointLight
+{
+
+	DirectX::XMFLOAT4 Color;
+	DirectX::XMFLOAT3 Position;
+	
+};

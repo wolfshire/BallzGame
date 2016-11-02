@@ -43,10 +43,12 @@ private:
 
 	//lights
 	DirectionalLight dirLight1;
-	DirectionalLight dirLight2;
+	PointLight pointLight1;
+	PointLight pointLight2;
 
 	//Textures & samplers
 	ID3D11ShaderResourceView* gamefield;
+	ID3D11ShaderResourceView* gamefieldNormal; //Normal
 	ID3D11ShaderResourceView* bricks;
 	ID3D11ShaderResourceView* woodTexture; 
 	ID3D11ShaderResourceView* menu;
@@ -60,10 +62,13 @@ private:
 	void CreateBasicGeometry();
 	void CreateMenu();
 	void CreateGameField();
+	void CreateLights();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
+	SimpleVertexShader* vertexShaderNormal;
+	SimplePixelShader* pixelShaderNormal;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
