@@ -6,12 +6,21 @@ struct DirectionalLight
 	float3 Direction;
 };
 
+struct PointLight
+{
+	float4 Color;
+	float3 Position;
+};
+
 cbuffer externalData : register(b0)
 {
 	DirectionalLight DirLightOne;
-	DirectionalLight DirLightTwo;
+
+	PointLight PointLightOne;
+	PointLight PointLightTwo;
 
 	float4 SurfaceColor;
+	float3 CameraPosition;
 };
 
 Texture2D Texture			: register(t0);
@@ -31,6 +40,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
+	float3 worldPos		: POSITION;
 	float2 uv			: TEXTCOORD;
 };
 
@@ -66,11 +76,30 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Get texture color
 	float4 textureColor = Texture.Sample(basicSampler, input.uv);
 
-	//Calculate final Colors
+	//Calculate final Directional Colors
 	float3 DirLightOneColor = CalculateDirectionalLightColor(input.normal, DirLightOne, textureColor);
-	float3 DirLightTwoColor = CalculateDirectionalLightColor(input.normal, DirLightTwo, textureColor);
 
-	float3 finalColor = DirLightOneColor + DirLightTwoColor;
+	//Calculate Point light colors and specular lighting 
+	//Point Light One
+	float3 dirToPointLightOne = normalize(PointLightOne.Position - input.worldPos);
+	float pointLightAmount = saturate(dot(input.normal, dirToPointLightOne));
+	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount;	
+	float3 toCamera = normalize(CameraPosition - input.worldPos);	//----------------
+	float3 refl = reflect(-dirToPointLightOne, input.normal);		//	  SPECULAR
+	float specPLOne = pow(max(dot(refl, toCamera), 0), 168);		//----------------
+
+	//Point Light Two
+	float3 dirToPointLightTwo = normalize(PointLightTwo.Position - input.worldPos);
+	pointLightAmount = saturate(dot(input.normal, dirToPointLightTwo));
+	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount;
+	refl = reflect(-dirToPointLightTwo, input.normal);
+	float specPLTwo = pow(max(dot(refl, toCamera), 0), 168);
+
+	float3 finalColor = DirLightOneColor +
+						PointLightOneColor +
+						PointLightTwoColor +
+						specPLOne +
+						specPLTwo;
 
 	return float4(finalColor, 1);
 }

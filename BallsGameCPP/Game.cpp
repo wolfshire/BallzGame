@@ -26,6 +26,8 @@ Game::Game(HINSTANCE hInstance)
 
 	vertexShader = 0;
 	pixelShader = 0;
+	vertexShaderNormal = 0;
+	pixelShaderNormal = 0;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -46,12 +48,15 @@ Game::~Game()
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
 	delete pixelShader;
+	delete vertexShaderNormal;
+	delete pixelShaderNormal;
 
 	delete renderer;
 	delete mainCamera;
 
 	sampler1->Release();
 	gamefield->Release();
+	gamefieldNormal->Release();
 	bricks->Release();
 	woodTexture->Release();
 	menu->Release();
@@ -109,23 +114,7 @@ void Game::Init()
 
 	CreateGameField();
 
-	dirLight1.AmbientColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	dirLight1.DiffuseColor = XMFLOAT4(1, 0, 0, 1);
-	dirLight1.Direction = XMFLOAT3(0, 0, -1);
-
-	dirLight2.AmbientColor = XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f);
-	dirLight2.DiffuseColor = XMFLOAT4(0, 0, 1, 1);
-	dirLight2.Direction = XMFLOAT3(-1, -1, 0);
-
-	pixelShader->SetData(
-		"DirLightOne",				//The name of the variable in the pixel shader
-		&dirLight1,					//The address of the data to copy
-		sizeof(DirectionalLight));  //Size of data to copy
-
-	pixelShader->SetData(
-		"DirLightTwo",				//The name of the variable in the pixel shader
-		&dirLight2,					//The address of the data to copy
-		sizeof(DirectionalLight));  //Size of data to copy
+	CreateLights();
 
 	CreateMenu();
 
@@ -147,6 +136,14 @@ void Game::LoadShaders()
 	pixelShader = new SimplePixelShader(device, context);
 	if(!pixelShader->LoadShaderFile(L"Debug/PixelShader.cso"))	
 		pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	vertexShaderNormal = new SimpleVertexShader(device, context);
+	if (!vertexShaderNormal->LoadShaderFile(L"Debug/VertexShaderNormal.cso"))
+		vertexShaderNormal->LoadShaderFile(L"VertexShaderNormal.cso");
+
+	pixelShaderNormal = new SimplePixelShader(device, context);
+	if (!pixelShaderNormal->LoadShaderFile(L"Debug/PixelShaderNormal.cso"))
+		pixelShaderNormal->LoadShaderFile(L"PixelShaderNormal.cso");
 
 	// You'll notice that the code above attempts to load each
 	// compiled shader file (.cso) from two different relative paths.
@@ -189,9 +186,17 @@ void Game::CreateBasicGeometry()
 	HRESULT check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Assets/Textures/field.jpg",
+		L"Assets/Textures/grass.png",
 		0,
 		&gamefield
+	);
+
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/grassNormal.png",
+		0,
+		&gamefieldNormal
 	);
 
 	check = CreateWICTextureFromFile(
@@ -218,6 +223,7 @@ void Game::CreateBasicGeometry()
 		&woodTexture
 	);
 
+
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -233,7 +239,11 @@ void Game::CreateBasicGeometry()
 	meshes.push_back(new Mesh("../Assets/Models/sphere.obj", device));									//meshes[1] - > Sphere Model
 
 	//Creating materials
-	materials.push_back(new Material(vertexShader, pixelShader, gamefield, sampler1));					// materials[0] -> basic material, grassy field texture
+	//materials with normals
+	materials.push_back(new Material(vertexShaderNormal, pixelShaderNormal, gamefield, sampler1));		// materials[0] -> basic material, grassy field texture, has normal
+	materials[0]->AddNormalMap(gamefieldNormal);
+	
+	//regular materials
 	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));						// materials[1] -> basic material, brick texture
 	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler1));						// materials[2] -> basic material, main menu screen
 	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler1));				// materials[3] -> basic material, wood texture
@@ -303,6 +313,51 @@ void Game::CreateGameField() {
 	gameEntities[5]->SetTranslation(0.25f, 3.0f, 0.0f);
 	currentGameEntities.push_back(gameEntities[5]);
 
+}
+
+// --------------------------------------------------------
+// Creates the lights
+// --------------------------------------------------------
+void Game::CreateLights() {
+	dirLight1.AmbientColor = XMFLOAT4(0.2f, 0.2f, 0.2f, 1.0f);
+	dirLight1.DiffuseColor = XMFLOAT4(.5f, .5f, .5f, 1);
+	dirLight1.Direction = XMFLOAT3(0, 0, 1);
+
+	pointLight1.Position = XMFLOAT3(2.0f, -2.5f, -3.0f);
+	pointLight1.Color = XMFLOAT4(0.1f, 0.1f, 0.1f, 1);
+
+	pointLight2.Position = XMFLOAT3(2.0f, 3.0f, -3.0f);
+	pointLight2.Color = XMFLOAT4(0.1f, 0.1f, 0.1f, 1);
+
+	pixelShader->SetData(
+		"DirLightOne",				//The name of the variable in the pixel shader
+		&dirLight1,					//The address of the data to copy
+		sizeof(DirectionalLight));  //Size of data to copy
+
+	pixelShader->SetData(
+		"PointLightOne",
+		&pointLight1,
+		sizeof(PointLight));
+
+	pixelShader->SetData(
+		"PointLightTwo",
+		&pointLight2,
+		sizeof(PointLight));
+
+	pixelShaderNormal->SetData(
+		"DirLightOne",				//The name of the variable in the pixel shader
+		&dirLight1,					//The address of the data to copy
+		sizeof(DirectionalLight));  //Size of data to copy
+
+	pixelShaderNormal->SetData(
+		"PointLightOne",
+		&pointLight1,
+		sizeof(PointLight));
+
+	pixelShaderNormal->SetData(
+		"PointLightTwo",
+		&pointLight2,
+		sizeof(PointLight));
 }
 
 // --------------------------------------------------------
@@ -383,6 +438,10 @@ void Game::Draw(float deltaTime, float totalTime)
 	}
 	if (gameState == 1) {
 		renderer->SetGameEntityList(currentGameEntities);
+
+		pixelShader->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
+
+		pixelShaderNormal->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
 	}
 
 	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix());

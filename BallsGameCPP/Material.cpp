@@ -19,14 +19,18 @@ Material::~Material()
 
 void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
+	bool hi;
+	vertexShader->SetShader();
+	pixelShader->SetShader();
 	// Send data to shader variables
 	vertexShader->SetMatrix4x4("view", viewMatrix);
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 	vertexShader->SetMatrix4x4("world", worldMatrix);
 
-	pixelShader->SetFloat4("SurfaceColor", surfaceColor);
-	pixelShader->SetSamplerState("basicSampler", sampler);
-	pixelShader->SetShaderResourceView("Texture", texture);
+	hi = pixelShader->SetFloat4("SurfaceColor", surfaceColor);
+	hi = pixelShader->SetSamplerState("basicSampler", sampler);
+	hi = pixelShader->SetShaderResourceView("Texture", texture);
+	hi = pixelShader->SetShaderResourceView("NormalMap", normalMap);
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU
@@ -38,7 +42,6 @@ void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XM
 	//  - These don't technically need to be set every frame...YET
 	//  - Once you start applying different shaders to different objects,
 	//    you'll need to swap the current shaders before each draw
-	vertexShader->SetShader();
-	pixelShader->SetShader();
+
 }
 

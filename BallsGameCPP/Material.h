@@ -18,6 +18,7 @@ public:
 	void PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 
 	void SetSurfaceColor(XMFLOAT4 color) { surfaceColor = color; }
+	void AddNormalMap(ID3D11ShaderResourceView* n) { normalMap = n; }
 
 private:
 
@@ -27,6 +28,8 @@ private:
 	XMFLOAT4 surfaceColor;
 
 	ID3D11ShaderResourceView* texture;
+	ID3D11ShaderResourceView* normalMap;
 	ID3D11SamplerState* sampler;
+
 };
 

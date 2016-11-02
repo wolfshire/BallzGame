@@ -43,6 +43,7 @@ struct VertexToPixel
 	//  v    v                v
 	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal		: NORMAL;
+	float3 worldPos		: POSITION;
 	float2 uv			: TEXTCOORD;
 };
 
@@ -73,6 +74,9 @@ VertexToPixel main( VertexShaderInput input )
 	// The result is essentially the position (XY) of the vertex on our 2D 
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
+
+	//Calculate the world position
+	output.worldPos = mul(float4(input.position, 1), world).xyz;
 
 	// Get the normal to the pixel shader
 	// (This is ASSUMING UNIFORM SCALING! - Otherwise you need
