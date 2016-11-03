@@ -130,7 +130,7 @@ void Camera::Update(float deltaTime)
 	if (GetAsyncKeyState(VK_NUMPAD2) & 0x8000) { //debugRotation
 		rotateX(false);
 	}
-	
+
 	XMVECTOR pos = XMLoadFloat3(&position);
 
 	XMStoreFloat3(&direction, dir);

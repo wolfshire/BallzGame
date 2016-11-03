@@ -7,6 +7,8 @@
 #include "Lights.h"
 #include <DirectXMath.h>
 #include "BallManager.h"
+#include "SpriteFont.h"
+#include "SimpleMath.h"
 
 class Game 
 	: public DXCore
@@ -82,5 +84,14 @@ private:
 
 	BallManager* ballManager;
 
+	// Font related objects
+	std::unique_ptr<DirectX::SpriteFont> m_font;
+	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
+
+	// Font positions
+	DirectX::SimpleMath::Vector2 m_p1FontPos;
+	DirectX::SimpleMath::Vector2 m_p2FontPos;
+
+	bool DEBUG_MODE;
 };
 
