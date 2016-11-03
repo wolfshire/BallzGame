@@ -267,20 +267,23 @@ void Game::CreateBasicGeometry()
 	//Setting material Color -Debug
 	//materials[2]->SetSurfaceColor(XMFLOAT4(1, 1, 1, 1));
 
-	//Creating GameEntities
+	//Creating Field GameEntities
 	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));									// gameEntities[0] -> Game Field (Cube/Grass)
-	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[1] -> Ball (Sphere/Brick)
-	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[2] -> Top Wall (Cube/Wood)
-	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[3] -> Bottom Wall (Cube/Wood)
-	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[4] -> Left Wall (Cube/Wood)
-	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[5] -> Right Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[1] -> Top Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[2] -> Bottom Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[3] -> Left Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[4] -> Right Wall (Cube/Wood)
+
+	//Creating Ball GameEntities
+	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[5] -> Ball (Sphere/Brick)
 	gameEntities.push_back(new GameEntity(meshes[1], materials[3]));									// gameEntities[6] -> Ball (Sphere/Wood)
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
-
-	ballManager->addBall(gameEntities[1], myVector(-2, 0, 0), myVector(1, 0, 0), 1, .5);
-	ballManager->addBall(gameEntities[6], myVector(2, 0, 0), myVector(-1, 0, 0), 1, .5);
+	
+	//Adding balls to the manager
+	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.5), myVector(1, 0, 0), 1, .5);
+	ballManager->addBall(gameEntities[6], myVector(2, 0, -.5), myVector(-1, 0, 0), 1, .5);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -303,32 +306,32 @@ void Game::CreateGameField() {
 	gameEntities[0]->SetScale(3.2f, 5.5f, 1.0f);
 	currentGameEntities.push_back(gameEntities[0]);
 
-	//Adding a ball
-	gameEntities[1]->SetScale(1.f, 1.f, 1.f);
-	gameEntities[1]->SetTranslation(0.0f, 0.0f, -.75f);
-	currentGameEntities.push_back(gameEntities[1]);
-
 	//Creating the walls
 	//top
-	gameEntities[2]->Rotate(0.0f, PI / 2.0f, 0.0f);
-	gameEntities[2]->SetScale(1.5f, .25f, 5.5f);
-	gameEntities[2]->SetTranslation(0.25f, 1.73f, 0.0f);
+	gameEntities[1]->Rotate(0.0f, PI / 2.0f, 0.0f);
+	gameEntities[1]->SetScale(1.5f, .25f, 5.5f);
+	gameEntities[1]->SetTranslation(0.25f, 1.73f, 0.0f);
 	currentGameEntities.push_back(gameEntities[2]);
 	//bottom
-	gameEntities[3]->Rotate(0.0f, PI / 2.0f, 0.0f);
-	gameEntities[3]->SetScale(1.5f, .25f, 5.5f);
-	gameEntities[3]->SetTranslation(0.25f, -1.73f, 0.0f);
+	gameEntities[2]->Rotate(0.0f, PI / 2.0f, 0.0f);
+	gameEntities[2]->SetScale(1.5f, .25f, 5.5f);
+	gameEntities[2]->SetTranslation(0.25f, -1.73f, 0.0f);
 	currentGameEntities.push_back(gameEntities[3]);
 	//left
-	gameEntities[4]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
-	gameEntities[4]->SetScale(1.5f, .5f, 3.72f);
-	gameEntities[4]->SetTranslation(0.25f, -3.0f, 0.0f);
+	gameEntities[3]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
+	gameEntities[3]->SetScale(1.5f, .5f, 3.72f);
+	gameEntities[3]->SetTranslation(0.25f, -3.0f, 0.0f);
 	currentGameEntities.push_back(gameEntities[4]);
 	//right
-	gameEntities[5]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
-	gameEntities[5]->SetScale(1.5f, .5f, 3.72f);
-	gameEntities[5]->SetTranslation(0.25f, 3.0f, 0.0f);
+	gameEntities[4]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
+	gameEntities[4]->SetScale(1.5f, .5f, 3.72f);
+	gameEntities[4]->SetTranslation(0.25f, 3.0f, 0.0f);
 	currentGameEntities.push_back(gameEntities[5]);
+
+	//Adding a ball
+	gameEntities[5]->SetScale(1.f, 1.f, 1.f);
+	gameEntities[5]->SetTranslation(0.0f, 0.0f, -.75f);
+	currentGameEntities.push_back(gameEntities[1]);
 
 	//Adding a ball
 	gameEntities[6]->SetScale(1.f, 1.f, 1.f);
@@ -450,6 +453,9 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	// Set depth buffer
+	context->OMSetDepthStencilState(0, 0);
+
 	// Background color (Cornflower Blue in this case) for clearing
 	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
 
