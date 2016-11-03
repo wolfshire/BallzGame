@@ -417,22 +417,22 @@ void Game::Update(float deltaTime, float totalTime)
 		float sinTime = (sin(totalTime) + 2.0f) / 10.0f;
 		float cosTime = cos(totalTime);
 
-		if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
-		{
-			gameEntities[1]->Move(deltaTime, 0, 0);
-		}
-		if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
-		{
-			gameEntities[1]->Move(-deltaTime, 0, 0);
-		}
-		if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
-		{
-			gameEntities[1]->Move(0, deltaTime, 0);
-		}
-		if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
-		{
-			gameEntities[1]->Move(0, -deltaTime, 0);
-		}
+		//if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
+		//{
+		//	gameEntities[1]->Move(deltaTime, 0, 0);
+		//}
+		//if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
+		//{
+		//	gameEntities[1]->Move(-deltaTime, 0, 0);
+		//}
+		//if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
+		//{
+		//	gameEntities[1]->Move(0, deltaTime, 0);
+		//}
+		//if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
+		//{
+		//	gameEntities[1]->Move(0, -deltaTime, 0);
+		//}
 
 		if (DEBUG_MODE) {
 			mainCamera->Update(deltaTime);
