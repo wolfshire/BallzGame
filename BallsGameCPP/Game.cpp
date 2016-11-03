@@ -279,8 +279,8 @@ void Game::CreateBasicGeometry()
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 
-	ballManager->addBall(gameEntities[1], myVector(-2, 2, 1), myVector(1, 1, 0), 1, 0.5);
-	ballManager->addBall(gameEntities[6], myVector(1, 5, 1), myVector(0, 0, 0), 1, 0.5);
+	ballManager->addBall(gameEntities[1], myVector(-2, 0, 0), myVector(1, 0, 0), 1, .5);
+	ballManager->addBall(gameEntities[6], myVector(2, 0, 0), myVector(-1, 0, 0), 1, .5);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
