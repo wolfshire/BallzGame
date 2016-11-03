@@ -18,7 +18,7 @@ using namespace DirectX;
 Game::Game(HINSTANCE hInstance)
 	: DXCore( 
 		hInstance,		   // The application's handle
-		"DirectX Game",	   // Text for the window's title bar
+		"Ball Game",	   // Text for the window's title bar
 		1280,			   // Width of the window's client area
 		720,			   // Height of the window's client area
 		true)			   // Show extra stats (fps) in title bar?
@@ -81,6 +81,10 @@ Game::~Game()
 	{
 		delete name;
 	}
+
+	// Clean up font
+	m_font.reset();
+	m_spriteBatch.reset();
 }
 
 // --------------------------------------------------------
@@ -108,8 +112,6 @@ void Game::Init()
 
 	mainCamera = new Camera(width, height);
 
-	
-
 	mouseDown = false;
 
 	CreateGameField();
@@ -119,6 +121,20 @@ void Game::Init()
 	CreateMenu();
 
 	gameState = 1;
+
+	// Initialize font related objects
+	m_font.reset(new SpriteFont(device, L"myfile.spritefont"));
+	m_spriteBatch.reset(new SpriteBatch(context));
+
+	// Position of the first font object
+	m_p1FontPos.x = width / 6;
+	m_p1FontPos.y = height / 16;
+
+	// Position of the second font object
+	m_p2FontPos.x = width * 5 / 6;
+	m_p2FontPos.y = height / 16;
+
+	DEBUG_MODE = false;
 }
 
 // --------------------------------------------------------
@@ -263,7 +279,7 @@ void Game::CreateBasicGeometry()
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 
-	ballManager->addBall(gameEntities[1], myVector(1, 1, 1), myVector(0, 1, 0), 1, 1);
+	ballManager->addBall(gameEntities[1], myVector(0,0,0), myVector(1, 0, 0), 1, 1);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -409,9 +425,19 @@ void Game::Update(float deltaTime, float totalTime)
 		{
 			gameEntities[1]->Move(0, -deltaTime, 0);
 		}
+
+		if (DEBUG_MODE) {
+			mainCamera->Update(deltaTime);
+		}
+
+		if (GetAsyncKeyState(VK_F1) & 0x8000) {
+			DEBUG_MODE = true;
+		}
+
+		ballManager->Update(deltaTime);
+		// Print out the position of the ball
+		printf("");
 	}
-	mainCamera->Update(deltaTime);
-	ballManager->Update(deltaTime);
 }
 
 // --------------------------------------------------------
@@ -446,6 +472,22 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix());
 
+	// Drawing font
+	m_spriteBatch->Begin();
+
+	// First text
+	const wchar_t* output = L"Score: 0\nBalls: 0";
+	SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.f;
+	m_font->DrawString(m_spriteBatch.get(), output,
+		m_p1FontPos, Colors::Red, 0.f, origin);
+
+	// Second Text
+	output = L"Score: 0\nBalls: 0";
+	origin = m_font->MeasureString(output) / 2.f;
+	m_font->DrawString(m_spriteBatch.get(), output,
+		m_p2FontPos, Colors::Blue, 0.f, origin);
+
+	m_spriteBatch->End();
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
