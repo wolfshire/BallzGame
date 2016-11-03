@@ -108,5 +108,10 @@ public:
 		this->position += this->velocity * deltaTime;
 		this->acceleration = { 0,0,0 };
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
+
+		// Check if walls are hit - bounce back
+		if (position.x > 2.3 || position.x < -2.3) {
+			velocity.x *= -1;
+		}
 	}
 };
