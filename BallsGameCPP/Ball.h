@@ -109,4 +109,29 @@ public:
 		this->acceleration = { 0,0,0 };
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
 	}
+
+	myVector getPosition()
+	{
+		return this->position;
+	}
+
+	myVector getVelocity()
+	{
+		return this->velocity;
+	}
+
+	void setVelocity(myVector newVelocity)
+	{
+		this->velocity = newVelocity;
+	}
+
+	float getRadius()
+	{
+		return this->radius;
+	}
+
+	float getMass()
+	{
+		return this->mass;
+	}
 };

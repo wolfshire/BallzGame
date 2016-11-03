@@ -43,7 +43,6 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 Game::~Game()
 {
-
 	// Delete our simple shader objects, which
 	// will clean up their own internal DirectX stuff
 	delete vertexShader;
@@ -259,11 +258,13 @@ void Game::CreateBasicGeometry()
 	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[3] -> Bottom Wall (Cube/Wood)
 	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[4] -> Left Wall (Cube/Wood)
 	gameEntities.push_back(new GameEntity(meshes[0], materials[3]));									// gameEntities[5] -> Right Wall (Cube/Wood)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[3]));									// gameEntities[6] -> Ball (Sphere/Wood)
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 
-	ballManager->addBall(gameEntities[1], myVector(1, 1, 1), myVector(0, 1, 0), 1, 1);
+	ballManager->addBall(gameEntities[1], myVector(-2, 2, 1), myVector(1, 1, 0), 1, 0.5);
+	ballManager->addBall(gameEntities[6], myVector(1, 5, 1), myVector(0, 0, 0), 1, 0.5);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -287,7 +288,7 @@ void Game::CreateGameField() {
 	currentGameEntities.push_back(gameEntities[0]);
 
 	//Adding a ball
-	gameEntities[1]->SetScale(.5f, .5f, .5f);
+	gameEntities[1]->SetScale(1.f, 1.f, 1.f);
 	gameEntities[1]->SetTranslation(0.0f, 0.0f, -.75f);
 	currentGameEntities.push_back(gameEntities[1]);
 
@@ -313,6 +314,10 @@ void Game::CreateGameField() {
 	gameEntities[5]->SetTranslation(0.25f, 3.0f, 0.0f);
 	currentGameEntities.push_back(gameEntities[5]);
 
+	//Adding a ball
+	gameEntities[6]->SetScale(1.f, 1.f, 1.f);
+	gameEntities[6]->SetTranslation(0.0f, 0.0f, -.75f);
+	currentGameEntities.push_back(gameEntities[6]);
 }
 
 // --------------------------------------------------------
