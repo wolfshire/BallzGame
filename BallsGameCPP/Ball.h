@@ -85,20 +85,23 @@ class Ball
 public:
 	Ball(GameEntity* mesh, myVector position, myVector velocity, float mass, float radius)
 	{
-		this->mesh = mesh;
+		this->mesh = new GameEntity(mesh);
 		this->position = position;
 		this->velocity = velocity;
 		this->acceleration = myVector(0.f, 0.f, 0.f);
 		this->mass = mass;
 		this->radius = radius;
+
+		this->mesh->SetScale(radius, radius, radius);
 	}
 
 	~Ball()
 	{
+		delete mesh;
 	}
 
 	void applyForce(myVector force)
-	{
+	{ 
 		this->acceleration += force;
 	}
 
@@ -138,5 +141,10 @@ public:
 	float getMass()
 	{
 		return this->mass;
+	}
+	
+	GameEntity* getMesh()
+	{
+		return this->mesh;
 	}
 };

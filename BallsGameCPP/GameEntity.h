@@ -10,6 +10,7 @@ class GameEntity
 {
 public:
 	GameEntity(Mesh* mesh, Material* material);
+	GameEntity(GameEntity* copy);
 	~GameEntity();
 
 	void UpdateWorldMatrix();

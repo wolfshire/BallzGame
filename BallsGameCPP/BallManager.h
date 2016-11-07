@@ -73,4 +73,15 @@ public:
 		}
 		return false;
 	}
+
+	std::vector<GameEntity*> getBallGameEntities() {
+		std::vector<GameEntity*> entities;
+
+		for (auto i = balls->begin(); i != balls->end(); i++) {
+			Ball* b = *i;
+			entities.push_back(b->getMesh());
+		}
+
+		return entities;
+	}
 };
