@@ -14,6 +14,12 @@ struct myVector
 	myVector(float x, float y, float z) : x(x), y(y), z(z) {}
 
 	myVector(const myVector& other) : x(other.x), y(other.y), z(other.z) {}
+
+	float magnitude() { return std::sqrt(this->magSquared()); }
+
+	float magSquared() { return (this->x * this->x) + (this->y * this->y) + (this->z * this->z); }
+
+	float dot(myVector other) { return (this->x * other.x) + (this->y * other.y) + (this->z * other.z); }
 #pragma region Operators
 	friend myVector operator+(const myVector &v1, const myVector &v2)
 	{
@@ -61,6 +67,22 @@ struct myVector
 		return *this;
 	}
 
+	myVector& myVector::operator*=(const float& rhs)
+	{
+		this->x *= rhs;
+		this->y *= rhs;
+		this->z *= rhs;
+		return *this;
+	}
+
+	myVector& myVector::operator/=(const float& rhs)
+	{
+		this->x /= rhs;
+		this->y /= rhs;
+		this->z /= rhs;
+		return *this;
+	}
+
 	void operator = (const myVector &V)
 	{
 		this->x = V.x;
@@ -92,7 +114,7 @@ public:
 		this->mass = mass;
 		this->radius = radius;
 
-		this->mesh->SetScale(radius, radius, radius);
+		this->mesh->SetScale(radius * 2, radius * 2, radius * 2);
 	}
 
 	~Ball()
@@ -109,6 +131,7 @@ public:
 	{
 		this->velocity += this->acceleration * deltaTime;
 		this->position += this->velocity * deltaTime;
+
 		this->acceleration = { 0,0,0 };
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
 
@@ -122,6 +145,8 @@ public:
 		{
 			this->velocity.y *= -1;
 		}
+
+		this->position.z = -.65f;
 	}
 
 	myVector getPosition()

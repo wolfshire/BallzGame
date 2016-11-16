@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <cmath>
 #include "Ball.h"
 
 class BallManager
@@ -47,14 +48,32 @@ public:
 					float ballOneMass = (*balls)[i]->getMass();
 					float ballTwoMass = (*balls)[j]->getMass();
 
-					float newOneX = (ballOneVel.x * (ballOneMass - ballTwoMass) + (2 * ballTwoMass * ballTwoVel.x)) / (ballOneMass + ballTwoMass);
-					float newOneY = (ballOneVel.y * (ballOneMass - ballTwoMass) + (2 * ballTwoMass * ballTwoVel.y)) / (ballOneMass + ballTwoMass);
+					myVector normal = ballOnePos - ballTwoPos;
+					normal /= normal.magnitude();
 
-					float newTwoX = (ballTwoVel.x * (ballTwoMass - ballOneMass) + (2 * ballOneMass * ballOneVel.x)) / (ballOneMass + ballTwoMass);
-					float newTwoY = (ballTwoVel.y * (ballTwoMass - ballOneMass) + (2 * ballOneMass * ballOneVel.y)) / (ballOneMass + ballTwoMass);
+					myVector ballOneCollisionComp = normal * normal.dot(ballOneVel);
+					myVector ballOneOrthoComp = ballOneVel - ballOneCollisionComp;
 
-					(*balls)[i]->setVelocity(myVector(newOneX, newOneY, ballOneVel.z));
-					(*balls)[j]->setVelocity(myVector(newTwoX, newTwoY, ballTwoVel.z));
+					myVector ballTwoCollisionComp = normal * normal.dot(ballTwoVel);
+					myVector ballTwoOrthoComp = ballTwoVel - ballTwoCollisionComp;
+
+					float mag1 = ballOneCollisionComp.magnitude() * std::sin(normal.dot(ballOneVel));
+					float mag2 = ballTwoCollisionComp.magnitude() * std::sin(normal.dot(ballTwoVel));
+
+					float commonVel = 2 * (ballOneMass * mag1 + ballTwoMass * mag2) / (ballOneMass + ballTwoMass);
+
+					float mag1post = commonVel - mag1;
+					float mag2post = commonVel - mag2;
+
+					ballOneCollisionComp *= (mag1post / mag1);
+					ballTwoCollisionComp *= (mag2post / mag2);
+
+					myVector newVelOne = ballOneCollisionComp + ballOneOrthoComp;
+					myVector newVelTwo = ballTwoCollisionComp + ballTwoCollisionComp;
+
+					(*balls)[i]->setVelocity(myVector(newVelOne.x, newVelOne.y, 0.f));
+					(*balls)[j]->setVelocity(myVector(newVelTwo.x, newVelTwo.y, 0.f));
+
 
 					(*balls)[i]->update(deltaTime);
 					(*balls)[j]->update(deltaTime);

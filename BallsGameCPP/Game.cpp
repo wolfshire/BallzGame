@@ -283,11 +283,11 @@ void Game::CreateBasicGeometry()
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
 	//Adding balls to the manager
-	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.75f), myVector(1, 0, 0), 1, .5);
-	ballManager->addBall(gameEntities[6], myVector(2, 0, -.65f), myVector(-1, 0, 0), 1, .25);
-	ballManager->addBall(gameEntities[6], myVector(2, 1, -.65f), myVector(-1, 0, 0), 1, .25);
-	ballManager->addBall(gameEntities[6], myVector(2, .5f, -.65f), myVector(-1, 0, 0), 1, .25);
-	ballManager->addBall(gameEntities[6], myVector(2, -1, -.65f), myVector(-1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[5], myVector(-2, 0.2, -.65f), myVector(1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[6], myVector(2, 0, -.65f), myVector(-1, 0, 0), 1, .125);
+	ballManager->addBall(gameEntities[6], myVector(2, 1, -.65f), myVector(-1, 0, 0), 1, .125);
+	ballManager->addBall(gameEntities[6], myVector(2, .5f, -.65f), myVector(-1, 0, 0), 1, .125);
+	ballManager->addBall(gameEntities[6], myVector(2, -0.8, -.65f), myVector(-1, 0, 0), 1, .125);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
