@@ -97,6 +97,9 @@
     <FxCompile Include="PixelShaderNormal.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="VertexShaderShadow.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -25,7 +25,9 @@ cbuffer externalData : register(b0)
 
 Texture2D Texture			: register(t0);
 Texture2D NormalMap			: register(t1);
+Texture2D ShadowMap			: register(t2);
 SamplerState basicSampler	: register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -44,6 +46,7 @@ struct VertexToPixel
 	float3 tangent		: TANGENT;
 	float3 worldPos		: POSITION;
 	float2 uv			: TEXTCOORD;
+	float4 posForShadow : TEXCOORD1;
 };
 
 // --------------------------------------------------------
@@ -109,8 +112,20 @@ float4 main(VertexToPixel input) : SV_TARGET
 	refl = reflect(-dirToPointLightTwo, input.normal);
 	float specPLTwo = pow(max(dot(refl, toCamera), 0), 30);
 
-	float3 finalColor = DirLightOneColor +
-						PointLightOneColor +
+	// Shadow map calculation
+
+	// Figure out this pixel's UV in the SHADOW MAP
+	float2 shadowUV = input.posForShadow.xy / input.posForShadow.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
+
+									// Calculate this pixel's actual depth from the light
+	float depthFromLight = input.posForShadow.z / input.posForShadow.w;
+
+	// Sample the shadow map
+	float shadowAmount = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
+
+	float3 finalColor = DirLightOneColor  +
+						PointLightOneColor  * shadowAmount +
 						PointLightTwoColor +
 						specPLOne +
 						specPLTwo;

@@ -24,7 +24,9 @@ cbuffer externalData : register(b0)
 };
 
 Texture2D Texture			: register(t0);
+Texture2D ShadowMap			: register(t1);
 SamplerState basicSampler	: register(s0);
+SamplerComparisonState ShadowSampler : register(s1);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -42,6 +44,7 @@ struct VertexToPixel
 	float3 normal		: NORMAL;
 	float3 worldPos		: POSITION;
 	float2 uv			: TEXTCOORD;
+	float4 posForShadow : TEXCOORD1;
 };
 
 // --------------------------------------------------------
@@ -83,7 +86,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light One
 	float3 dirToPointLightOne = normalize(PointLightOne.Position - input.worldPos);
 	float pointLightAmount = saturate(dot(input.normal, dirToPointLightOne));
-	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount;	
+	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	float3 toCamera = normalize(CameraPosition - input.worldPos);	//----------------
 	float3 refl = reflect(-dirToPointLightOne, input.normal);		//	  SPECULAR
 	float specPLOne = pow(max(dot(refl, toCamera), 0), 168);		//----------------
@@ -91,12 +94,24 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light Two
 	float3 dirToPointLightTwo = normalize(PointLightTwo.Position - input.worldPos);
 	pointLightAmount = saturate(dot(input.normal, dirToPointLightTwo));
-	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount;
+	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	refl = reflect(-dirToPointLightTwo, input.normal);
 	float specPLTwo = pow(max(dot(refl, toCamera), 0), 168);
 
+	// Shadow map calculation
+
+	// Figure out this pixel's UV in the SHADOW MAP
+	float2 shadowUV = input.posForShadow.xy / input.posForShadow.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
+
+									// Calculate this pixel's actual depth from the light
+	float depthFromLight = input.posForShadow.z / input.posForShadow.w;
+
+	// Sample the shadow map
+	float shadowAmount = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
+
 	float3 finalColor = DirLightOneColor +
-						PointLightOneColor +
+						PointLightOneColor * shadowAmount+
 						PointLightTwoColor +
 						specPLOne +
 						specPLTwo;

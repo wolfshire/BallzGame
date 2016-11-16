@@ -10,6 +10,9 @@ cbuffer externalData : register(b0)
 	matrix world;
 	matrix view;
 	matrix projection;
+
+	matrix shadowView;
+	matrix shadowProjection;
 };
 
 // Struct representing a single vertex worth of data
@@ -48,6 +51,7 @@ struct VertexToPixel
 	float3 tangent		: TANGENT;
 	float3 worldPos		: POSITION;
 	float2 uv			: TEXTCOORD;
+	float4 posForShadow : TEXCOORD1;
 };
 
 // --------------------------------------------------------
@@ -91,6 +95,10 @@ VertexToPixel main(VertexShaderInput input)
 	output.tangent = mul(input.tangent, (float3x3)world);
 
 	output.uv = input.uv;
+
+	// Do shadow map calc
+	matrix shadowWVP = mul(mul(world, shadowView), shadowProjection);
+	output.posForShadow = mul(float4(input.position, 1), shadowWVP);
 
 
 	// Whatever we return will make its way through the pipeline to the

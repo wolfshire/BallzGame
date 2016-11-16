@@ -17,6 +17,8 @@ public:
 
 	void PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 
+	void PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 view, XMFLOAT4X4 proj, ID3D11ShaderResourceView * shadowMap, ID3D11SamplerState * shadowSampler);
+
 	void SetSurfaceColor(XMFLOAT4 color) { surfaceColor = color; }
 	void AddNormalMap(ID3D11ShaderResourceView* n) { normalMap = n; }
 

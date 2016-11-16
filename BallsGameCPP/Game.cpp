@@ -50,11 +50,17 @@ Game::~Game()
 	delete pixelShader;
 	delete vertexShaderNormal;
 	delete pixelShaderNormal;
+	delete vertexShaderShadow;
 
 	delete renderer;
 	delete mainCamera;
 
-	sampler1->Release();
+	shadowDSV->Release();
+	shadowSRV->Release();
+	shadowRasterizer->Release();
+	shadowSampler->Release();
+
+	sampler->Release();
 	gamefield->Release();
 	gamefieldNormal->Release();
 	bricks->Release();
@@ -93,6 +99,10 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
+	
+	gameState = 1;
+	shadowMapSize = 1024;
+	
 	ballManager = new BallManager();
 
 	// Helper methods for loading shaders, creating some basic
@@ -118,9 +128,9 @@ void Game::Init()
 
 	CreateLights();
 
-	CreateMenu();
+	CreateShadowMap();
 
-	gameState = 1;
+	CreateMenu();
 
 	// Initialize font related objects
 	m_font.reset(new SpriteFont(device, L"myfile.spritefont"));
@@ -161,6 +171,10 @@ void Game::LoadShaders()
 	if (!pixelShaderNormal->LoadShaderFile(L"Debug/PixelShaderNormal.cso"))
 		pixelShaderNormal->LoadShaderFile(L"PixelShaderNormal.cso");
 
+	vertexShaderShadow = new SimpleVertexShader(device, context);
+	if (!vertexShaderShadow->LoadShaderFile(L"Debug/vertexShaderShadow.cso"))
+		vertexShaderShadow->LoadShaderFile(L"vertexShaderShadow.cso");
+
 	// You'll notice that the code above attempts to load each
 	// compiled shader file (.cso) from two different relative paths.
 
@@ -189,6 +203,16 @@ void Game::CreateMatrices()
 	//   matrix (column major vs row major) than the DirectX Math library
 	XMMATRIX W = XMMatrixIdentity();
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
+
+	XMMATRIX shadowViewLightOne = XMMatrixLookAtLH(
+		DirectX::XMVectorSet(1.5f, -2.0f, -3.0f, 0.0f),
+		DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+		DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(shadowViewLightOne));
+
+	XMMATRIX shadowProjectionLightOne = XMMatrixOrthographicLH(10.0f, 10.0f, 0.1f, 100.0f);
+	XMStoreFloat4x4(&shadowProjectionMatrix, XMMatrixTranspose(shadowProjectionLightOne));
+
 }
 
 
@@ -248,7 +272,7 @@ void Game::CreateBasicGeometry()
 	samplerDesc.MaxAnisotropy = 16;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	check = device->CreateSamplerState(&samplerDesc, &sampler1);
+	check = device->CreateSamplerState(&samplerDesc, &sampler);
 
 	//Creating Meshes
 	meshes.push_back(new Mesh("../Assets/Models/cube.obj", device));									//meshes[0] - > Cube Model
@@ -256,13 +280,13 @@ void Game::CreateBasicGeometry()
 
 	//Creating materials
 	//materials with normals
-	materials.push_back(new Material(vertexShaderNormal, pixelShaderNormal, gamefield, sampler1));		// materials[0] -> basic material, grassy field texture, has normal
+	materials.push_back(new Material(vertexShaderNormal, pixelShaderNormal, gamefield, sampler));		// materials[0] -> basic material, grassy field texture, has normal
 	materials[0]->AddNormalMap(gamefieldNormal);
 	
 	//regular materials
-	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler1));						// materials[1] -> basic material, brick texture
-	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler1));						// materials[2] -> basic material, main menu screen
-	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler1));				// materials[3] -> basic material, wood texture
+	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler));						// materials[1] -> basic material, brick texture
+	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler));						// materials[2] -> basic material, main menu screen
+	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler));				// materials[3] -> basic material, wood texture
 
 	
 	//Setting material Color -Debug
@@ -278,6 +302,7 @@ void Game::CreateBasicGeometry()
 	//Creating Ball GameEntities
 	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[5] -> Ball (Sphere/Brick)
 	gameEntities.push_back(new GameEntity(meshes[1], materials[3]));									// gameEntities[6] -> Ball (Sphere/Wood)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
@@ -288,6 +313,7 @@ void Game::CreateBasicGeometry()
 	ballManager->addBall(gameEntities[6], myVector(2, 1, -.65f), myVector(-1, 0, 0), 1, .125);
 	ballManager->addBall(gameEntities[6], myVector(2, .5f, -.65f), myVector(-1, 0, 0), 1, .125);
 	ballManager->addBall(gameEntities[6], myVector(2, -0.8, -.65f), myVector(-1, 0, 0), 1, .125);
+	
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -347,7 +373,7 @@ void Game::CreateLights() {
 	dirLight1.DiffuseColor = XMFLOAT4(.5f, .5f, .5f, 1);
 	dirLight1.Direction = XMFLOAT3(0, 0, 1);
 
-	pointLight1.Position = XMFLOAT3(2.0f, -2.5f, -3.0f);
+	pointLight1.Position = XMFLOAT3(1.5f, -2.0f, -3.0f);
 	pointLight1.Color = XMFLOAT4(0.1f, 0.1f, 0.1f, 1);
 
 	pointLight2.Position = XMFLOAT3(2.0f, 3.0f, -3.0f);
@@ -398,6 +424,71 @@ void Game::SortCurrentEntities() {
 		currentGameEntities.push_back(e);
 	}
 	
+	//gameEntities[7]->SetTranslation(0, 1, -3);
+	//gameEntities[7]->SetScale(0.50f, 0.5f, 0.50f);
+	//currentGameEntities.push_back(gameEntities[7]);
+	
+	
+}
+
+//Creates the Shadow Map components
+void Game::CreateShadowMap()
+{
+	//Create the shadow map texture
+	D3D11_TEXTURE2D_DESC shadowDesc = {};
+	shadowDesc.Width = shadowMapSize;
+	shadowDesc.Height = shadowMapSize;
+	shadowDesc.ArraySize = 1;
+	shadowDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowDesc.CPUAccessFlags = 0;
+	shadowDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowDesc.MipLevels = 1;
+	shadowDesc.MiscFlags = 0;
+	shadowDesc.SampleDesc.Count = 1;
+	shadowDesc.SampleDesc.Quality = 0;
+	shadowDesc.Usage = D3D11_USAGE_DEFAULT;
+	ID3D11Texture2D* shadowTexture;
+	device->CreateTexture2D(&shadowDesc, 0, &shadowTexture);
+
+	// Create the depth/stencil
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDSDesc = {};
+	shadowDSDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowDSDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowDSDesc.Texture2D.MipSlice = 0;
+	device->CreateDepthStencilView(shadowTexture, &shadowDSDesc, &shadowDSV);
+
+	//Creating the Shader Resource View for the shadow map
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(shadowTexture, &srvDesc, &shadowSRV);
+
+	shadowTexture->Release();
+
+	// Create the special "comparison" sampler state for shadows
+	D3D11_SAMPLER_DESC shadowSampDesc = {};
+	shadowSampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
+	shadowSampDesc.ComparisonFunc = D3D11_COMPARISON_LESS;
+	shadowSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSampDesc.BorderColor[0] = 1.0f;
+	shadowSampDesc.BorderColor[1] = 1.0f;
+	shadowSampDesc.BorderColor[2] = 1.0f;
+	shadowSampDesc.BorderColor[3] = 1.0f;
+	device->CreateSamplerState(&shadowSampDesc, &shadowSampler);
+
+	// Create a rasterizer state
+	D3D11_RASTERIZER_DESC shadowRastDesc = {};
+	shadowRastDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRastDesc.CullMode = D3D11_CULL_BACK;
+	shadowRastDesc.DepthClipEnable = true;
+	shadowRastDesc.DepthBias = 1000; // Multiplied by (smallest possible value > 0 in depth buffer)
+	shadowRastDesc.DepthBiasClamp = 0.0f;
+	shadowRastDesc.SlopeScaledDepthBias = 1.0f;
+	device->CreateRasterizerState(&shadowRastDesc, &shadowRasterizer);
 }
 
 // --------------------------------------------------------
@@ -471,11 +562,14 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	//Rendering the shadow map, uncomment to have no shadows
+	//RenderShadowMap();
+
 	// Set depth buffer
 	context->OMSetDepthStencilState(0, 0);
 
 	// Background color (Cornflower Blue in this case) for clearing
-	const float color[4] = {0.4f, 0.6f, 0.75f, 0.0f};
+	const float color[4] = {0.4f, 0.7f, 0.0f, 0.0f};
 
 	// Clear the render target and depth buffer (erases what's on the screen)
 	//  - Do this ONCE PER FRAME
@@ -497,6 +591,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
 
 		pixelShaderNormal->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
+
+		renderer->SetShadowMap(shadowViewMatrix, shadowProjectionMatrix, shadowSRV, shadowSampler);
 	}
 
 	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix());
@@ -506,21 +602,102 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// First text
 	const wchar_t* output = L"Score: 0\nBalls: 0";
-	SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.f;
+	SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.0f;
 	m_font->DrawString(m_spriteBatch.get(), output,
 		m_p1FontPos, Colors::Red, 0.f, origin);
 
 	// Second Text
 	output = L"Score: 0\nBalls: 0";
-	origin = m_font->MeasureString(output) / 2.f;
+	origin = m_font->MeasureString(output) / 2.0f;
 	m_font->DrawString(m_spriteBatch.get(), output,
 		m_p2FontPos, Colors::Blue, 0.f, origin);
 
 	m_spriteBatch->End();
+
+	// Reset the states!
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+	pixelShader->SetShaderResourceView("ShadowMap", 0);
 	// Present the back buffer to the user
 	//  - Puts the final frame we're drawing into the window so the user can see it
 	//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 	swapChain->Present(0, 0);
+}
+
+void Game::RenderShadowMap()
+{
+	// Set up targets
+	context->OMSetRenderTargets(0, 0, shadowDSV);
+	context->ClearDepthStencilView(shadowDSV, D3D11_CLEAR_DEPTH, 1.0f, 0);
+	context->RSSetState(shadowRasterizer);
+
+	// Make a viewport to match the render target size
+	D3D11_VIEWPORT viewport = {};
+	viewport.TopLeftX = 0;
+	viewport.TopLeftY = 0;
+	viewport.Width = (float)shadowMapSize;
+	viewport.Height = (float)shadowMapSize;
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &viewport);
+
+	// Set up our shadow VS shader
+	vertexShaderShadow->SetShader();
+	vertexShaderShadow->SetMatrix4x4("view", shadowViewMatrix);
+	vertexShaderShadow->SetMatrix4x4("projection", shadowProjectionMatrix);
+
+	// Turn off pixel shader
+	context->PSSetShader(0, 0, 0);
+
+	// Loop through entities and draw them
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	//Shadows on just balls
+	//for (unsigned int i = 0; i < ballManager->getBallGameEntities().size(); i++)
+	//{
+	//	// Grab the data from the first entity's mesh
+	//	GameEntity* ge = ballManager->getBallGameEntities()[i];
+	//	ID3D11Buffer* vb = ge->getMesh()->GetVertexBuffer();
+	//	ID3D11Buffer* ib = ge->getMesh()->GetIndexBuffer();
+
+	//	// Set buffers in the input assembler
+	//	context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+	//	context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+
+	//	vertexShaderShadow->SetMatrix4x4("world", ge->getWorldMatrix());
+	//	vertexShaderShadow->CopyAllBufferData();
+
+	//	// Finally do the actual drawing
+	//	context->DrawIndexed(ge->getMesh()->GetIndexCount(), 0, 0);
+	//}
+
+	//Shadows on every current game entity
+	for (unsigned int i = 0; i < currentGameEntities.size(); i++)
+	{
+		// Grab the data from the first entity's mesh
+		GameEntity* ge = currentGameEntities[i];
+		ID3D11Buffer* vb = ge->getMesh()->GetVertexBuffer();
+		ID3D11Buffer* ib = ge->getMesh()->GetIndexBuffer();
+
+		// Set buffers in the input assembler
+		context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+		context->IASetIndexBuffer(ib, DXGI_FORMAT_R32_UINT, 0);
+
+		vertexShaderShadow->SetMatrix4x4("world", ge->getWorldMatrix());
+		vertexShaderShadow->CopyAllBufferData();
+
+		// Finally do the actual drawing
+		context->DrawIndexed(ge->getMesh()->GetIndexCount(), 0, 0);
+	}
+
+	// Change everything back
+	context->OMSetRenderTargets(1, &backBufferRTV, depthStencilView);
+	viewport.Width = (float)width;
+	viewport.Height = (float)height;
+	context->RSSetViewports(1, &viewport);
+	context->RSSetState(0);
+
 }
 
 

@@ -25,6 +25,8 @@ public:
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
+	void RenderShadowMap();
+
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
@@ -55,7 +57,16 @@ private:
 	ID3D11ShaderResourceView* bricks;
 	ID3D11ShaderResourceView* woodTexture; 
 	ID3D11ShaderResourceView* menu;
-	ID3D11SamplerState* sampler1;
+	ID3D11SamplerState* sampler;
+	ID3D11SamplerState* shadowSampler;
+
+	//Shadow Map
+	int shadowMapSize;
+	ID3D11DepthStencilView* shadowDSV;
+	ID3D11ShaderResourceView* shadowSRV;
+	ID3D11RasterizerState* shadowRasterizer;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 
 	bool mouseDown;
 
@@ -68,11 +79,14 @@ private:
 	void CreateLights();
 	void SortCurrentEntities();
 
+	void CreateShadowMap();
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShaderNormal;
 	SimplePixelShader* pixelShaderNormal;
+	SimpleVertexShader* vertexShaderShadow;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;

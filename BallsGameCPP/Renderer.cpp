@@ -19,6 +19,14 @@ void Renderer::SetGameEntityList(std::vector<GameEntity*> list)
 	gameEntityList = list; 
 }
 
+void Renderer::SetShadowMap(XMFLOAT4X4 view, XMFLOAT4X4 proj, ID3D11ShaderResourceView* shadowMap, ID3D11SamplerState* shadowSampler)
+{
+	shadowView = view;
+	shadowProjection = proj;
+	this->shadowMap = shadowMap;
+	this->shadowSampler = shadowSampler;
+}
+
 void Renderer::Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	if (gameEntityList.size() != 0)
@@ -35,8 +43,14 @@ void Renderer::Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 			gameEntity->getMaterial()->PrepareMaterial(
 				gameEntity->getWorldMatrix(),
 				viewMatrix,
-				projectionMatrix
+				projectionMatrix,
+				shadowView,
+				shadowProjection,
+				shadowMap,
+				shadowSampler
 			);
+
+
 
 			Mesh* tempMesh = gameEntity->getMesh();
 
