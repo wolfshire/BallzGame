@@ -102,6 +102,9 @@ class Ball
 	float mass;
 	float radius;
 
+	float xBound;
+	float yBound;
+
 	GameEntity* mesh;
 
 public:
@@ -113,6 +116,9 @@ public:
 		this->acceleration = myVector(0.f, 0.f, 0.f);
 		this->mass = mass;
 		this->radius = radius;
+
+		this->xBound = 2.8;
+		this->yBound = 1.6;
 
 		this->mesh->SetScale(radius * 2, radius * 2, radius * 2);
 	}
@@ -136,15 +142,11 @@ public:
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
 
 		// Check if walls are hit - bounce back
-		if (position.x > 2.3 || position.x < -2.3) 
-		{
+		if (this->position.x + this->radius > this->xBound || this->position.x - this->radius < -this->xBound) 
 			this->velocity.x *= -1;
-		}
 
-		if (position.y > 1.3 || position.y < -1.3)
-		{
+		if (this->position.y + this->radius > this->yBound || this->position.y - this->radius < -this->yBound)
 			this->velocity.y *= -1;
-		}
 
 		this->position.z = -.65f;
 	}

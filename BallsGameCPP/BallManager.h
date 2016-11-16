@@ -7,10 +7,12 @@
 class BallManager
 {
 	std::vector<Ball*>* balls;
+	float maxSpeed;
 public:
 	BallManager()
 	{
 		balls = new std::vector<Ball*>();
+		maxSpeed = 2;
 	}
 
 	~BallManager()
@@ -77,15 +79,11 @@ public:
 					myVector newVelTwo = ballTwoCollisionComp + ballTwoOrthoComp;
 
 
-					if (newVelOne.magnitude() > 2)
-					{
-						newVelOne /= newVelOne.magnitude() / 2;
-					}
+					if (newVelOne.magnitude() > this->maxSpeed)
+						newVelOne /= newVelOne.magnitude() / this->maxSpeed;
 
-					if (newVelTwo.magnitude() > 2)
-					{
-						newVelTwo /= newVelTwo.magnitude() / 2;
-					}
+					if (newVelTwo.magnitude() > this->maxSpeed)
+						newVelTwo /= newVelTwo.magnitude() / this->maxSpeed;
 
 					(*balls)[i]->setVelocity(myVector(newVelOne.x, newVelOne.y, 0.f));
 					(*balls)[j]->setVelocity(myVector(newVelTwo.x, newVelTwo.y, 0.f));
