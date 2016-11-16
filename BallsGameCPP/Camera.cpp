@@ -12,7 +12,7 @@ Camera::Camera(int width, int height)
 	//    camera and the direction vector along which to look (as well as "up")
 	// - Another option is the LOOK AT function, to look towards a specific
 	//    point in 3D space
-	XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
+	XMVECTOR pos = XMVectorSet(0, 0, -6, 0);
 	XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
 	XMVECTOR up = XMVectorSet(0, 1, 0, 0);
 	XMMATRIX V = XMMatrixLookToLH(

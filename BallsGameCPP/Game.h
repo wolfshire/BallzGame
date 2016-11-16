@@ -66,6 +66,7 @@ private:
 	void CreateMenu();
 	void CreateGameField();
 	void CreateLights();
+	void SortCurrentEntities();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;

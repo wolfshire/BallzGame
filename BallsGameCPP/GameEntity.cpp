@@ -10,7 +10,17 @@ GameEntity::GameEntity(Mesh * mesh, Material* material)
 	myPosition = XMFLOAT3(0, 0, 0);
 	myRotation = XMFLOAT3(0, 0, 0);
 	myScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
-	int i = 0;
+}
+
+GameEntity::GameEntity(GameEntity* copy)
+{
+	myMesh = copy->getMesh();
+	myMaterial = copy->getMaterial();
+	XMMATRIX identity = XMMatrixIdentity();
+	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(identity));
+	myPosition = XMFLOAT3(0, 0, 0);
+	myRotation = XMFLOAT3(0, 0, 0);
+	myScale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 }
 
 GameEntity::~GameEntity()

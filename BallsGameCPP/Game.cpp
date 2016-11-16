@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Vertex.h"
 #include "WICTextureLoader.h"
+#include <algorithm>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -133,7 +134,7 @@ void Game::Init()
 	m_p2FontPos.x = width * 5 / 6;
 	m_p2FontPos.y = height / 16;
 
-	DEBUG_MODE = false;
+	DEBUG_MODE = true;
 }
 
 // --------------------------------------------------------
@@ -217,7 +218,7 @@ void Game::CreateBasicGeometry()
 	check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Assets/Textures/bricks.jpg",
+		L"Assets/Textures/soccer.png",
 		0,
 		&bricks
 	);
@@ -282,8 +283,11 @@ void Game::CreateBasicGeometry()
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
 	//Adding balls to the manager
-	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.5), myVector(1, 1, 0), 1, .5);
-	ballManager->addBall(gameEntities[6], myVector(2, 0, -.5), myVector(-1, 0, 0), 1, .5);
+	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.75f), myVector(1, 0, 0), 1, .5);
+	ballManager->addBall(gameEntities[6], myVector(2, 0, -.65f), myVector(-1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[6], myVector(2, 1, -.65f), myVector(-1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[6], myVector(2, .5f, -.65f), myVector(-1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[6], myVector(2, -1, -.65f), myVector(-1, 0, 0), 1, .25);
 
 	//Setting Scales
 	/*for(int i = 0; i < gameEntities.size(); i++)
@@ -304,39 +308,35 @@ void Game::CreateGameField() {
 	//creating the floor
 	gameEntities[0]->Rotate(0.0f, 0.0f, PI/2.0f);
 	gameEntities[0]->SetScale(3.2f, 5.5f, 1.0f);
-	currentGameEntities.push_back(gameEntities[0]);
+	//currentGameEntities.push_back(gameEntities[0]);
 
 	//Creating the walls
 	//top
 	gameEntities[1]->Rotate(0.0f, PI / 2.0f, 0.0f);
 	gameEntities[1]->SetScale(1.5f, .25f, 5.5f);
 	gameEntities[1]->SetTranslation(0.25f, 1.73f, 0.0f);
-	currentGameEntities.push_back(gameEntities[2]);
+	//currentGameEntities.push_back(gameEntities[1]);
 	//bottom
 	gameEntities[2]->Rotate(0.0f, PI / 2.0f, 0.0f);
 	gameEntities[2]->SetScale(1.5f, .25f, 5.5f);
 	gameEntities[2]->SetTranslation(0.25f, -1.73f, 0.0f);
-	currentGameEntities.push_back(gameEntities[3]);
+	//currentGameEntities.push_back(gameEntities[2]);
 	//left
 	gameEntities[3]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
 	gameEntities[3]->SetScale(1.5f, .5f, 3.72f);
 	gameEntities[3]->SetTranslation(0.25f, -3.0f, 0.0f);
-	currentGameEntities.push_back(gameEntities[4]);
+	//currentGameEntities.push_back(gameEntities[3]);
 	//right
 	gameEntities[4]->Rotate(PI / 2.0f, PI / 2.0f, 0.0f);
 	gameEntities[4]->SetScale(1.5f, .5f, 3.72f);
 	gameEntities[4]->SetTranslation(0.25f, 3.0f, 0.0f);
-	currentGameEntities.push_back(gameEntities[5]);
+	//currentGameEntities.push_back(gameEntities[4]);
 
-	//Adding a ball
-	gameEntities[5]->SetScale(1.f, 1.f, 1.f);
-	gameEntities[5]->SetTranslation(0.0f, 0.0f, -.75f);
-	currentGameEntities.push_back(gameEntities[1]);
+	//Adding balls
+	/*currentGameEntities.push_back(gameEntities[5]);
+	currentGameEntities.push_back(gameEntities[6]);*/
 
-	//Adding a ball
-	gameEntities[6]->SetScale(1.f, 1.f, 1.f);
-	gameEntities[6]->SetTranslation(0.0f, 0.0f, -.75f);
-	currentGameEntities.push_back(gameEntities[6]);
+	
 }
 
 // --------------------------------------------------------
@@ -382,6 +382,22 @@ void Game::CreateLights() {
 		"PointLightTwo",
 		&pointLight2,
 		sizeof(PointLight));
+}
+
+void Game::SortCurrentEntities() {
+	currentGameEntities.clear();
+	currentGameEntities.push_back(gameEntities[0]); //gamefield
+	currentGameEntities.push_back(gameEntities[1]); //top wall
+	currentGameEntities.push_back(gameEntities[2]);	//bottom wall
+	currentGameEntities.push_back(gameEntities[3]); //left wall
+	currentGameEntities.push_back(gameEntities[4]);	//right wall
+
+	//getting all the ball Game Entities and adding them to the current entity list
+	std::vector<GameEntity*> list = ballManager->getBallGameEntities(); 
+	for each(auto e in list) {
+		currentGameEntities.push_back(e);
+	}
+	
 }
 
 // --------------------------------------------------------
@@ -443,6 +459,8 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 
 		ballManager->Update(deltaTime);
+		
+		SortCurrentEntities();
 		// Print out the position of the ball
 		printf("");
 	}
