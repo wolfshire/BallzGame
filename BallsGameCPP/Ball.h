@@ -149,6 +149,11 @@ public:
 		this->position.z = -.65f;
 	}
 
+	void unUpdate(float deltaTime)
+	{
+		this->position -= this->velocity * deltaTime;
+	}
+
 	myVector getPosition()
 	{
 		return this->position;

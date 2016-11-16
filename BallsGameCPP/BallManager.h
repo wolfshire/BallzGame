@@ -39,8 +39,16 @@ public:
 			{
 				if (isColliding((*balls)[i], (*balls)[j]))
 				{
+
+					(*balls)[i]->unUpdate(deltaTime);
+					(*balls)[j]->unUpdate(deltaTime);
+
+
 					myVector ballOneVel = (*balls)[i]->getVelocity();
 					myVector ballTwoVel = (*balls)[j]->getVelocity();
+
+					float initialMag1 = ballOneVel.magnitude();
+					float initialMag2 = ballTwoVel.magnitude();
 
 					myVector ballOnePos = (*balls)[i]->getPosition(); 
 					myVector ballTwoPos = (*balls)[j]->getPosition();
@@ -69,7 +77,15 @@ public:
 					ballTwoCollisionComp *= (mag2post / mag2);
 
 					myVector newVelOne = ballOneCollisionComp + ballOneOrthoComp;
-					myVector newVelTwo = ballTwoCollisionComp + ballTwoCollisionComp;
+					myVector newVelTwo = ballTwoCollisionComp + ballTwoOrthoComp;
+
+					float finalMag1 = newVelOne.magnitude();
+					float finalMag2 = newVelTwo.magnitude();
+
+					if ((initialMag1 + initialMag2) < (finalMag1 + finalMag2))
+					{
+						int i = 5;
+					}
 
 					(*balls)[i]->setVelocity(myVector(newVelOne.x, newVelOne.y, 0.f));
 					(*balls)[j]->setVelocity(myVector(newVelTwo.x, newVelTwo.y, 0.f));
