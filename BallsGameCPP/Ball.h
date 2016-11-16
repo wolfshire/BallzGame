@@ -110,8 +110,14 @@ public:
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
 
 		// Check if walls are hit - bounce back
-		if (position.x > 2.3 || position.x < -2.3) {
-			velocity.x *= -1;
+		if (position.x > 2.3 || position.x < -2.3) 
+		{
+			this->velocity.x *= -1;
+		}
+
+		if (position.y > 1.3 || position.y < -1.3)
+		{
+			this->velocity.y *= -1;
 		}
 	}
 

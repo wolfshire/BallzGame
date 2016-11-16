@@ -55,6 +55,9 @@ public:
 
 					(*balls)[i]->setVelocity(myVector(newOneX, newOneY, ballOneVel.z));
 					(*balls)[j]->setVelocity(myVector(newTwoX, newTwoY, ballTwoVel.z));
+
+					(*balls)[i]->update(deltaTime);
+					(*balls)[j]->update(deltaTime);
 				}
 			}
 		}

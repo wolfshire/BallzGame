@@ -282,7 +282,7 @@ void Game::CreateBasicGeometry()
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
 	//Adding balls to the manager
-	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.5), myVector(1, 0, 0), 1, .5);
+	ballManager->addBall(gameEntities[5], myVector(-2, 0, -.5), myVector(1, 1, 0), 1, .5);
 	ballManager->addBall(gameEntities[6], myVector(2, 0, -.5), myVector(-1, 0, 0), 1, .5);
 
 	//Setting Scales
