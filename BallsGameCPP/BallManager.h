@@ -47,9 +47,6 @@ public:
 					myVector ballOneVel = (*balls)[i]->getVelocity();
 					myVector ballTwoVel = (*balls)[j]->getVelocity();
 
-					float initialMag1 = ballOneVel.magnitude();
-					float initialMag2 = ballTwoVel.magnitude();
-
 					myVector ballOnePos = (*balls)[i]->getPosition(); 
 					myVector ballTwoPos = (*balls)[j]->getPosition();
 
@@ -79,12 +76,15 @@ public:
 					myVector newVelOne = ballOneCollisionComp + ballOneOrthoComp;
 					myVector newVelTwo = ballTwoCollisionComp + ballTwoOrthoComp;
 
-					float finalMag1 = newVelOne.magnitude();
-					float finalMag2 = newVelTwo.magnitude();
 
-					if ((initialMag1 + initialMag2) < (finalMag1 + finalMag2))
+					if (newVelOne.magnitude() > 2)
 					{
-						int i = 5;
+						newVelOne /= newVelOne.magnitude() / 2;
+					}
+
+					if (newVelTwo.magnitude() > 2)
+					{
+						newVelTwo /= newVelTwo.magnitude() / 2;
 					}
 
 					(*balls)[i]->setVelocity(myVector(newVelOne.x, newVelOne.y, 0.f));
