@@ -8,6 +8,7 @@ class BallManager
 {
 	std::vector<Ball*>* balls;
 	float maxSpeed;
+
 public:
 	BallManager()
 	{
@@ -34,6 +35,10 @@ public:
 		for (auto ball : *(this->balls))
 		{
 			ball->update(deltaTime);
+			if (ball->getDespawn())
+			{
+				//Despawn the ball here
+			}
 		}
 		for (int i = 0; i < this->balls->size();++i)
 		{
