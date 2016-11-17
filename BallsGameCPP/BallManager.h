@@ -25,19 +25,22 @@ public:
 		delete balls;
 	}
 
-	void addBall(GameEntity* ballMesh, myVector position, myVector velocity, float mass, float radius)
+	void addBall(GameEntity* ballMesh, myVector position, myVector velocity, float mass, float radius, bool isMain)
 	{
-		this->balls->push_back(new Ball(ballMesh, position, velocity, mass, radius));
+		this->balls->push_back(new Ball(ballMesh, position, velocity, mass, radius, isMain));
 	}
 
 	void Update(float deltaTime)
 	{
-		for (auto ball : *(this->balls))
+		for (int i = 0; i < this->balls->size(); ++i)
 		{
+			Ball* ball = (*(this->balls))[i];
 			ball->update(deltaTime);
 			if (ball->getDespawn())
 			{
-				//Despawn the ball here
+					//Despawn the ball here
+					delete ball;
+					this->balls->erase(this->balls->begin() + i);
 			}
 		}
 		for (int i = 0; i < this->balls->size();++i)

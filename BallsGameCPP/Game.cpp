@@ -355,7 +355,7 @@ void Game::CreateBasicGeometry()
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
 	//Adding balls to the manager
-	ballManager->addBall(gameEntities[5], myVector(-2, 0.2, -.65f), myVector(1, 0, 0), 1, .25);
+	ballManager->addBall(gameEntities[5], myVector(0, 0, .65f), myVector(0,.5f, 0), 1, .25, true);
 	
 
 	//Setting Scales
@@ -607,7 +607,7 @@ void Game::Update(float deltaTime, float totalTime)
 		if (GetAsyncKeyState(VK_SPACE) & 0x1)
 		{
 			ballManager->addBall(gameEntities[6], myVector(p1SelectEntities[p1Selection]->getPosition().x, p1SelectEntities[p1Selection]->getPosition().y, p1SelectEntities[p1Selection]->getPosition().z), 
-				myVector(1, 0, 0), 1, .125);
+				myVector(1, 0, 0), 1, .125, false);
 
 		}
 		if (GetAsyncKeyState(VK_UP) & 0x1)
@@ -629,7 +629,7 @@ void Game::Update(float deltaTime, float totalTime)
 		if (GetAsyncKeyState(VK_RCONTROL) & 0x1)
 		{
 			ballManager->addBall(gameEntities[6], myVector(p2SelectEntities[p2Selection]->getPosition().x, p2SelectEntities[p2Selection]->getPosition().y, p2SelectEntities[p2Selection]->getPosition().z),
-				myVector(-1, 0, 0), 1, .125);
+				myVector(-1, 0, 0), 1, .125, false);
 		}
 
 
@@ -653,7 +653,7 @@ void Game::Update(float deltaTime, float totalTime)
 void Game::Draw(float deltaTime, float totalTime)
 {
 	//Rendering the shadow map, uncomment to have no shadows
-	//RenderShadowMap();
+	RenderShadowMap();
 
 	// Set depth buffer
 	context->OMSetDepthStencilState(0, 0);

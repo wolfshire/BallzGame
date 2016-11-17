@@ -108,8 +108,9 @@ class Ball
 	GameEntity* mesh;
 
 	bool despawn;
+	bool isSoccerBall;
 public:
-	Ball(GameEntity* mesh, myVector position, myVector velocity, float mass, float radius)
+	Ball(GameEntity* mesh, myVector position, myVector velocity, float mass, float radius, bool isMain)
 	{
 		this->mesh = new GameEntity(mesh);
 		this->position = position;
@@ -124,6 +125,7 @@ public:
 		this->mesh->SetScale(radius * 2, radius * 2, radius * 2);
 
 		this->despawn = false;
+		this->isSoccerBall = isMain;
 	}
 
 	~Ball()
@@ -146,7 +148,8 @@ public:
 
 		// Check if walls are hit - bounce back
 		if (this->position.x + this->radius > this->xBound || this->position.x - this->radius < -this->xBound) {
-			this->despawn = true;
+			if(!this->isSoccerBall) 
+				this->despawn = true;
 			this->velocity.x *= -1;
 		}
 
