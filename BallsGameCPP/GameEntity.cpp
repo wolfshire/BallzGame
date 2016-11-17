@@ -68,6 +68,11 @@ void GameEntity::SetScale(float x, float y, float z)
 	myScale = XMFLOAT3(x, y, z);
 }
 
+void GameEntity::SetMaterial(Material* newMaterial)
+{
+	myMaterial = newMaterial;
+}
+
 Mesh * GameEntity::getMesh()
 {
 	if (myMesh)

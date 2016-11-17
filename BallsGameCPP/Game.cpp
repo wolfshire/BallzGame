@@ -66,6 +66,8 @@ Game::~Game()
 	bricks->Release();
 	woodTexture->Release();
 	menu->Release();
+	redTexture->Release();
+	blueTexture->Release();
 
 	if (ballManager) delete ballManager;
 	//Deleting materials
@@ -87,6 +89,14 @@ Game::~Game()
 	{
 		delete name;
 	}
+	for each(GameEntity* name in p1SelectEntities)
+	{
+		delete name;
+	}
+	for each(GameEntity* name in p2SelectEntities)
+	{
+		delete name;
+	}
 
 	// Clean up font
 	m_font.reset();
@@ -99,8 +109,10 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	
 	gameState = 1;
+	p1Selection = 3;
+	p2Selection = 3;
+
 	shadowMapSize = 1024;
 	
 	ballManager = new BallManager();
@@ -263,6 +275,22 @@ void Game::CreateBasicGeometry()
 		&woodTexture
 	);
 
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/blueTexture.jpg",
+		0,
+		&blueTexture
+		);
+
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/redTexture.jpg",
+		0,
+		&redTexture
+		);
+
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -286,7 +314,9 @@ void Game::CreateBasicGeometry()
 	//regular materials
 	materials.push_back(new Material(vertexShader, pixelShader, bricks, sampler));						// materials[1] -> basic material, brick texture
 	materials.push_back(new Material(vertexShader, pixelShader, menu, sampler));						// materials[2] -> basic material, main menu screen
-	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler));				// materials[3] -> basic material, wood texture
+	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler));					// materials[3] -> basic material, wood texture
+	materials.push_back(new Material(vertexShader, pixelShader, redTexture, sampler));					// materials[4] -> basic material, red texture
+	materials.push_back(new Material(vertexShader, pixelShader, blueTexture, sampler));					// materials[5] -> basic material, blue texture
 
 	
 	//Setting material Color -Debug
@@ -302,17 +332,30 @@ void Game::CreateBasicGeometry()
 	//Creating Ball GameEntities
 	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[5] -> Ball (Sphere/Brick)
 	gameEntities.push_back(new GameEntity(meshes[1], materials[3]));									// gameEntities[6] -> Ball (Sphere/Wood)
-	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));
+	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[7] -> Ball (Sphere/Brick)
+
+	//Creating player ball spawn objects
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //0
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //1
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //2
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[5])); //3
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //4
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //5
+	p1SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //6
+
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //0
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //1
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //2
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[5])); //3
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //4
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //5
+	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //6
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
 	//Adding balls to the manager
 	ballManager->addBall(gameEntities[5], myVector(-2, 0.2, -.65f), myVector(1, 0, 0), 1, .25);
-	ballManager->addBall(gameEntities[6], myVector(2, 0, -.65f), myVector(-1, 0, 0), 1, .125);
-	ballManager->addBall(gameEntities[6], myVector(2, 1, -.65f), myVector(-1, 0, 0), 1, .125);
-	ballManager->addBall(gameEntities[6], myVector(2, .5f, -.65f), myVector(-1, 0, 0), 1, .125);
-	ballManager->addBall(gameEntities[6], myVector(2, -0.8, -.65f), myVector(-1, 0, 0), 1, .125);
 	
 
 	//Setting Scales
@@ -358,11 +401,36 @@ void Game::CreateGameField() {
 	gameEntities[4]->SetTranslation(0.25f, 3.0f, 0.0f);
 	//currentGameEntities.push_back(gameEntities[4]);
 
-	//Adding balls
-	/*currentGameEntities.push_back(gameEntities[5]);
-	currentGameEntities.push_back(gameEntities[6]);*/
+	//Player ball spawns
+	p1SelectEntities[0]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[0]->SetTranslation(-2.6f, 1.2f, -0.5f);
+	p1SelectEntities[1]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[1]->SetTranslation(-2.6f, 0.8f, -0.5f);
+	p1SelectEntities[2]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[2]->SetTranslation(-2.6f, 0.4f, -0.5f);
+	p1SelectEntities[3]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[3]->SetTranslation(-2.6f, 0.0f, -0.5f);
+	p1SelectEntities[4]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[4]->SetTranslation(-2.6f, -0.4f, -0.5f);
+	p1SelectEntities[5]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[5]->SetTranslation(-2.6f, -0.8f, -0.5f);
+	p1SelectEntities[6]->SetScale(0.1f, 0.1f, 0.1f);
+	p1SelectEntities[6]->SetTranslation(-2.6f, -1.2f, -0.5f);
 
-	
+	p2SelectEntities[0]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[0]->SetTranslation(2.6f, 1.2f, -0.5f);
+	p2SelectEntities[1]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[1]->SetTranslation(2.6f, 0.8f, -0.5f);
+	p2SelectEntities[2]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[2]->SetTranslation(2.6f, 0.4f, -0.5f);
+	p2SelectEntities[3]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[3]->SetTranslation(2.6f, 0.0f, -0.5f);
+	p2SelectEntities[4]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[4]->SetTranslation(2.6f, -0.4f, -0.5f);
+	p2SelectEntities[5]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[5]->SetTranslation(2.6f, -0.8f, -0.5f);
+	p2SelectEntities[6]->SetScale(0.1f, 0.1f, 0.1f);
+	p2SelectEntities[6]->SetTranslation(2.6f, -1.2f, -0.5f);
 }
 
 // --------------------------------------------------------
@@ -418,17 +486,17 @@ void Game::SortCurrentEntities() {
 	currentGameEntities.push_back(gameEntities[3]); //left wall
 	currentGameEntities.push_back(gameEntities[4]);	//right wall
 
+	//player ball spawn locations
+	for each(auto e in p1SelectEntities)
+		currentGameEntities.push_back(e);
+	for each(auto e in p2SelectEntities)
+		currentGameEntities.push_back(e);
+
 	//getting all the ball Game Entities and adding them to the current entity list
 	std::vector<GameEntity*> list = ballManager->getBallGameEntities(); 
 	for each(auto e in list) {
 		currentGameEntities.push_back(e);
 	}
-	
-	//gameEntities[7]->SetTranslation(0, 1, -3);
-	//gameEntities[7]->SetScale(0.50f, 0.5f, 0.50f);
-	//currentGameEntities.push_back(gameEntities[7]);
-	
-	
 }
 
 //Creates the Shadow Map components
@@ -520,40 +588,62 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 	}
 	if (gameState == 1) {
-		// Move the triangle a little
-		float sinTime = (sin(totalTime) + 2.0f) / 10.0f;
-		float cosTime = cos(totalTime);
+		if (GetAsyncKeyState('W') & 0x1)
+		{
+			if (p1Selection > 0) {
+				p1SelectEntities[p1Selection]->SetMaterial(materials[4]);
+				p1Selection--;
+				p1SelectEntities[p1Selection]->SetMaterial(materials[5]);
+			}
+		}
+		if (GetAsyncKeyState('S') & 0x1)
+		{
+			if (p1Selection < 6) {
+				p1SelectEntities[p1Selection]->SetMaterial(materials[4]);
+				p1Selection++;
+				p1SelectEntities[p1Selection]->SetMaterial(materials[5]);
+			}
+		}
+		if (GetAsyncKeyState(VK_SPACE) & 0x1)
+		{
+			ballManager->addBall(gameEntities[6], myVector(p1SelectEntities[p1Selection]->getPosition().x, p1SelectEntities[p1Selection]->getPosition().y, p1SelectEntities[p1Selection]->getPosition().z), 
+				myVector(1, 0, 0), 1, .125);
 
-		//if (GetAsyncKeyState(VK_RIGHT) & 0x8000) //Right Key
-		//{
-		//	gameEntities[1]->Move(deltaTime, 0, 0);
-		//}
-		//if (GetAsyncKeyState(VK_LEFT) & 0x8000) //Right Key
-		//{
-		//	gameEntities[1]->Move(-deltaTime, 0, 0);
-		//}
-		//if (GetAsyncKeyState(VK_UP) & 0x8000) //Right Key
-		//{
-		//	gameEntities[1]->Move(0, deltaTime, 0);
-		//}
-		//if (GetAsyncKeyState(VK_DOWN) & 0x8000) //Right Key
-		//{
-		//	gameEntities[1]->Move(0, -deltaTime, 0);
-		//}
+		}
+		if (GetAsyncKeyState(VK_UP) & 0x1)
+		{
+			if (p2Selection > 0) {
+				p2SelectEntities[p2Selection]->SetMaterial(materials[4]);
+				p2Selection--;
+				p2SelectEntities[p2Selection]->SetMaterial(materials[5]);
+			}
+		}
+		if (GetAsyncKeyState(VK_DOWN) & 0x1)
+		{
+			if (p2Selection < 6) {
+				p2SelectEntities[p2Selection]->SetMaterial(materials[4]);
+				p2Selection++;
+				p2SelectEntities[p2Selection]->SetMaterial(materials[5]);
+			}
+		}
+		if (GetAsyncKeyState(VK_RCONTROL) & 0x1)
+		{
+			ballManager->addBall(gameEntities[6], myVector(p2SelectEntities[p2Selection]->getPosition().x, p2SelectEntities[p2Selection]->getPosition().y, p2SelectEntities[p2Selection]->getPosition().z),
+				myVector(-1, 0, 0), 1, .125);
+		}
+
 
 		if (DEBUG_MODE) {
-			mainCamera->Update(deltaTime);
+			//mainCamera->Update(deltaTime);
 		}
 
 		if (GetAsyncKeyState(VK_F1) & 0x8000) {
-			DEBUG_MODE = true;
+			DEBUG_MODE = !DEBUG_MODE;
 		}
 
 		ballManager->Update(deltaTime);
 		
 		SortCurrentEntities();
-		// Print out the position of the ball
-		printf("");
 	}
 }
 

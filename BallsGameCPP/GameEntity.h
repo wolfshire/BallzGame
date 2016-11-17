@@ -22,13 +22,14 @@ public:
 	void SetRotation(float x, float y, float z);
 	void SetScale(float x, float y, float z);
 
+	void SetMaterial(Material*);
+
 	XMFLOAT4X4 getWorldMatrix() { return worldMatrix; }
 	XMFLOAT3 getPosition() { return myPosition; }
 	XMFLOAT3 getRotation() { return myRotation; }
 	XMFLOAT3 getScale() { return myScale; }
 	Mesh* getMesh(); 
 	Material* getMaterial(); 
-
 private:
 	
 	XMFLOAT4X4 worldMatrix;
@@ -38,6 +39,5 @@ private:
 
 	Mesh* myMesh;
 	Material* myMaterial;
-
 };
 

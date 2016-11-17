@@ -33,12 +33,16 @@ public:
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
 private:
-
+	//Gameplay variables
 	int gameState;
+	int p1Selection;
+	int p2Selection;
 
 	//List of Game Entities, Meshes, and Materials
 	std::vector<GameEntity*> menuEntities;
 	std::vector<GameEntity*> gameEntities;
+	std::vector<GameEntity*> p1SelectEntities;
+	std::vector<GameEntity*> p2SelectEntities;
 	std::vector<GameEntity*> currentGameEntities;
 	std::vector<Mesh*> meshes;
 	std::vector<Material*> materials;
@@ -57,6 +61,8 @@ private:
 	ID3D11ShaderResourceView* bricks;
 	ID3D11ShaderResourceView* woodTexture; 
 	ID3D11ShaderResourceView* menu;
+	ID3D11ShaderResourceView* redTexture;
+	ID3D11ShaderResourceView* blueTexture;
 	ID3D11SamplerState* sampler;
 	ID3D11SamplerState* shadowSampler;
 
