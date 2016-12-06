@@ -11,7 +11,7 @@ public:
 	~Renderer();
 
 	void SetGameEntityList(std::vector<GameEntity*> list);
-	void SetShadowMap(XMFLOAT4X4 view, XMFLOAT4X4 proj, ID3D11ShaderResourceView * shadowMap, ID3D11SamplerState* shadowSampler);
+	void SetShadowMap(std::vector<DirectX::XMFLOAT4X4> shadowMatricies, std::vector<ID3D11ShaderResourceView*> shadowMaps, ID3D11SamplerState * shadowSampler);
 	void Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 
 private:
@@ -22,13 +22,14 @@ private:
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
 
-	XMFLOAT4X4 shadowView;
-	XMFLOAT4X4 shadowProjection;
 	ID3D11ShaderResourceView* shadowMap;
 	ID3D11SamplerState* shadowSampler;
 
+	std::vector<DirectX::XMFLOAT4X4> shadowMatricies;
+	std::vector<ID3D11ShaderResourceView*> shadowMaps;
 
 	ID3D11DeviceContext* context;
+
 
 };
 

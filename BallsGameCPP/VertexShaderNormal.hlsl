@@ -13,6 +13,12 @@ cbuffer externalData : register(b0)
 
 	matrix shadowView;
 	matrix shadowProjection;
+	matrix shadowView2;
+	matrix shadowProjection2;
+	matrix shadowView3;
+	matrix shadowProjection3;
+	matrix shadowView4;
+	matrix shadowProjection4;
 };
 
 // Struct representing a single vertex worth of data
@@ -46,12 +52,15 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;	// XYZW position (System Value Position)
-	float3 normal		: NORMAL;
-	float3 tangent		: TANGENT;
-	float3 worldPos		: POSITION;
-	float2 uv			: TEXTCOORD;
-	float4 posForShadow : TEXCOORD1;
+	float4 position			: SV_POSITION;	// XYZW position (System Value Position)
+	float3 normal			: NORMAL;
+	float3 tangent			: TANGENT;
+	float3 worldPos			: POSITION;
+	float2 uv				: TEXTCOORD;
+	float4 posForShadow		: TEXCOORD1;
+	float4 posForShadow2	: TEXCOORD2;
+	float4 posForShadow3	: TEXCOORD3;
+	float4 posForShadow4	: TEXCOORD4;
 };
 
 // --------------------------------------------------------
@@ -99,6 +108,15 @@ VertexToPixel main(VertexShaderInput input)
 	// Do shadow map calc
 	matrix shadowWVP = mul(mul(world, shadowView), shadowProjection);
 	output.posForShadow = mul(float4(input.position, 1), shadowWVP);
+
+	shadowWVP = mul(mul(world, shadowView2), shadowProjection2);
+	output.posForShadow2 = mul(float4(input.position, 1), shadowWVP);
+
+	shadowWVP = mul(mul(world, shadowView3), shadowProjection3);
+	output.posForShadow3 = mul(float4(input.position, 1), shadowWVP);
+
+	shadowWVP = mul(mul(world, shadowView4), shadowProjection4);
+	output.posForShadow4 = mul(float4(input.position, 1), shadowWVP);
 
 
 	// Whatever we return will make its way through the pipeline to the

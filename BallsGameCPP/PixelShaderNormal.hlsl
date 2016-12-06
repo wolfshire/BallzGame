@@ -18,6 +18,8 @@ cbuffer externalData : register(b0)
 
 	PointLight PointLightOne;
 	PointLight PointLightTwo;
+	PointLight PointLightThree;
+	PointLight PointLightFour;
 
 	float4 SurfaceColor;
 	float3 CameraPosition;
@@ -26,6 +28,9 @@ cbuffer externalData : register(b0)
 Texture2D Texture			: register(t0);
 Texture2D NormalMap			: register(t1);
 Texture2D ShadowMap			: register(t2);
+Texture2D ShadowMap2		: register(t3);
+Texture2D ShadowMap3		: register(t4);
+Texture2D ShadowMap4		: register(t5);
 SamplerState basicSampler	: register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
 
@@ -41,12 +46,15 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 position		: SV_POSITION;
-	float3 normal		: NORMAL;
-	float3 tangent		: TANGENT;
-	float3 worldPos		: POSITION;
-	float2 uv			: TEXTCOORD;
-	float4 posForShadow : TEXCOORD1;
+	float4 position			: SV_POSITION;
+	float3 normal			: NORMAL;
+	float3 tangent			: TANGENT;
+	float3 worldPos			: POSITION;
+	float2 uv				: TEXTCOORD;
+	float4 posForShadow		: TEXCOORD1;
+	float4 posForShadow2	: TEXCOORD2;
+	float4 posForShadow3	: TEXCOORD3;
+	float4 posForShadow4	: TEXCOORD4;
 };
 
 // --------------------------------------------------------
@@ -100,7 +108,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light One
 	float3 dirToPointLightOne = normalize(PointLightOne.Position - input.worldPos);
 	float pointLightAmount = saturate(dot(input.normal, dirToPointLightOne));
-	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount;	
+	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount * SurfaceColor * textureColor * 3;
 	float3 toCamera = normalize(CameraPosition - input.worldPos);	//----------------
 	float3 refl = reflect(-dirToPointLightOne, input.normal);		//	  SPECULAR
 	float specPLOne = pow(max(dot(refl, toCamera), 0), 168);		//----------------
@@ -108,12 +116,27 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light Two
 	float3 dirToPointLightTwo = normalize(PointLightTwo.Position - input.worldPos);
 	pointLightAmount = saturate(dot(input.normal, dirToPointLightTwo));
-	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount;
+	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount * SurfaceColor * textureColor * 3;
 	refl = reflect(-dirToPointLightTwo, input.normal);
-	float specPLTwo = pow(max(dot(refl, toCamera), 0), 30);
+	float specPLTwo = pow(max(dot(refl, toCamera), 0), 168);
+
+	//Point Light Three
+	float3 dirToPointLightThree = normalize(PointLightThree.Position - input.worldPos);
+	pointLightAmount = saturate(dot(input.normal, dirToPointLightThree));
+	float3 PointLightThreeColor = PointLightThree.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	refl = reflect(-dirToPointLightThree, input.normal);
+	float specPLThree = pow(max(dot(refl, toCamera), 0), 168);
+
+	//Point Light Four
+	float3 dirToPointLightFour = normalize(PointLightFour.Position - input.worldPos);
+	pointLightAmount = saturate(dot(input.normal, dirToPointLightFour));
+	float3 PointLightFourColor = PointLightFour.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	refl = reflect(-dirToPointLightFour, input.normal);
+	float specPLFour = pow(max(dot(refl, toCamera), 0), 168);
 
 	// Shadow map calculation
 
+	// Light One
 	// Figure out this pixel's UV in the SHADOW MAP
 	float2 shadowUV = input.posForShadow.xy / input.posForShadow.w * 0.5f + 0.5f;
 	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
@@ -124,11 +147,47 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample the shadow map
 	float shadowAmount = ShadowMap.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
 
+	// Light Two
+	// Figure out this pixel's UV in the SHADOW MAP
+	shadowUV = input.posForShadow2.xy / input.posForShadow2.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
+
+									// Calculate this pixel's actual depth from the light
+	depthFromLight = input.posForShadow2.z / input.posForShadow2.w;
+
+	float shadowAmount2 = ShadowMap2.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
+
+	// Light Three
+	// Figure out this pixel's UV in the SHADOW MAP
+	shadowUV = input.posForShadow3.xy / input.posForShadow3.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
+
+									// Calculate this pixel's actual depth from the light
+	depthFromLight = input.posForShadow3.z / input.posForShadow3.w;
+
+	// Sample the shadow map
+	float shadowAmount3 = ShadowMap3.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
+
+	// Light Four
+	// Figure out this pixel's UV in the SHADOW MAP
+	shadowUV = input.posForShadow4.xy / input.posForShadow4.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y; // Flip the Y since UV coords and screen coords are different
+
+									// Calculate this pixel's actual depth from the light
+	depthFromLight = input.posForShadow4.z / input.posForShadow4.w;
+
+	// Sample the shadow map
+	float shadowAmount4 = ShadowMap4.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
+
 	float3 finalColor = DirLightOneColor  +
 						PointLightOneColor  * shadowAmount +
-						PointLightTwoColor +
+						PointLightTwoColor * shadowAmount2 +
+						PointLightThreeColor * shadowAmount3 +
+						PointLightFourColor * shadowAmount4 +
 						specPLOne +
-						specPLTwo;
+						specPLTwo +
+						specPLThree + 
+						specPLFour;
 
 	return float4(finalColor, 1);
 }

@@ -25,7 +25,7 @@ public:
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
 
-	void RenderShadowMap();
+	void RenderShadowMap(int lightIndex);
 
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
@@ -37,6 +37,8 @@ private:
 	int gameState;
 	int p1Selection;
 	int p2Selection;
+
+	float ballSpeed;
 
 	//List of Game Entities, Meshes, and Materials
 	std::vector<GameEntity*> menuEntities;
@@ -54,6 +56,8 @@ private:
 	DirectionalLight dirLight1;
 	PointLight pointLight1;
 	PointLight pointLight2;
+	PointLight pointLight3;
+	PointLight pointLight4;
 
 	//Textures & samplers
 	ID3D11ShaderResourceView* gamefield;
@@ -68,11 +72,12 @@ private:
 
 	//Shadow Map
 	int shadowMapSize;
-	ID3D11DepthStencilView* shadowDSV;
-	ID3D11ShaderResourceView* shadowSRV;
+
 	ID3D11RasterizerState* shadowRasterizer;
-	DirectX::XMFLOAT4X4 shadowViewMatrix;
-	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
+
+	std::vector<DirectX::XMFLOAT4X4> shadowMatricies; //nth index is the shadow view matrix, and n+1 index is the shadow projection matrix
+	std::vector<ID3D11ShaderResourceView*> shadowSRVs;
+	std::vector<ID3D11DepthStencilView*> shadowDSVs;
 
 	bool mouseDown;
 
