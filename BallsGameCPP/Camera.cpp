@@ -86,17 +86,17 @@ void Camera::Update(float deltaTime)
 	XMVECTOR dir = XMVector3Rotate(forward, currentRotation);
 	
 	//Getting keyboard input
-	if (GetAsyncKeyState('W') & 0x8000) { //forward
+	if (GetAsyncKeyState('T') & 0x8000) { //forward
 		position.x += direction.x * deltaTime * cameraSpeed;
 		position.y += direction.y * deltaTime * cameraSpeed;
 		position.z += direction.z * deltaTime * cameraSpeed;
 	}
-	if (GetAsyncKeyState('S') & 0x8000) { //back
+	if (GetAsyncKeyState('G') & 0x8000) { //back
 		position.x -= direction.x * deltaTime * cameraSpeed;
 		position.y -= direction.y * deltaTime * cameraSpeed;
 		position.z -= direction.z * deltaTime * cameraSpeed;
 	}
-	if (GetAsyncKeyState('A') & 0x8000) { //left
+	if (GetAsyncKeyState('F') & 0x8000) { //left
 		XMVECTOR leftRight = XMVector3Cross(up, dir);
 		XMFLOAT3 v;
 		XMStoreFloat3(&v, leftRight);
@@ -104,7 +104,7 @@ void Camera::Update(float deltaTime)
 		position.y -= v.y * deltaTime * cameraSpeed;
 		position.z -= v.z * deltaTime * cameraSpeed;
 	}
-	if (GetAsyncKeyState('D') & 0x8000) { //right
+	if (GetAsyncKeyState('H') & 0x8000) { //right
 		XMVECTOR leftRight = XMVector3Cross(up, dir);
 		XMFLOAT3 v;
 		XMStoreFloat3(&v, leftRight);

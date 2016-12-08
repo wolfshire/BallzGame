@@ -19,7 +19,7 @@ Material::~Material()
 
 void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
-	bool hi;
+	bool err;
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 	// Send data to shader variables
@@ -27,10 +27,10 @@ void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XM
 	vertexShader->SetMatrix4x4("projection", projectionMatrix);
 	vertexShader->SetMatrix4x4("world", worldMatrix);
 
-	hi = pixelShader->SetFloat4("SurfaceColor", surfaceColor);
-	hi = pixelShader->SetSamplerState("basicSampler", sampler);
-	hi = pixelShader->SetShaderResourceView("Texture", texture);
-	hi = pixelShader->SetShaderResourceView("NormalMap", normalMap);
+	err = pixelShader->SetFloat4("SurfaceColor", surfaceColor);
+	err = pixelShader->SetSamplerState("basicSampler", sampler);
+	err = pixelShader->SetShaderResourceView("Texture", texture);
+	err = pixelShader->SetShaderResourceView("NormalMap", normalMap);
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU
@@ -46,7 +46,7 @@ void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XM
 }
 void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, XMFLOAT4X4 view, XMFLOAT4X4 proj, ID3D11ShaderResourceView * shadowMap, ID3D11SamplerState* shadowSampler)
 {
-	bool hi;
+
 	vertexShader->SetShader();
 	pixelShader->SetShader();
 	// Send data to shader variables
@@ -76,7 +76,7 @@ void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XM
 
 }
 
-void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix, std::vector<XMFLOAT4X4> shadowMatricies, std::vector<ID3D11ShaderResourceView*>  shadowMap, ID3D11SamplerState* shadowSampler)
+void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix,  XMFLOAT4X4 projectionMatrix, ID3D11ShaderResourceView * skybox, std::vector<XMFLOAT4X4> shadowMatricies, std::vector<ID3D11ShaderResourceView*>  shadowMap, ID3D11SamplerState* shadowSampler)
 {
 
 	vertexShader->SetShader();
@@ -101,6 +101,7 @@ void Material::PrepareMaterial(XMFLOAT4X4 worldMatrix, XMFLOAT4X4 viewMatrix, XM
 	pixelShader->SetShaderResourceView("ShadowMap2", shadowMap[1]);
 	pixelShader->SetShaderResourceView("ShadowMap3", shadowMap[2]);
 	pixelShader->SetShaderResourceView("ShadowMap4", shadowMap[3]);
+	pixelShader->SetShaderResourceView("Sky", skybox);
 	pixelShader->SetSamplerState("basicSampler", sampler);
 	pixelShader->SetSamplerState("ShadowSampler", shadowSampler);
 

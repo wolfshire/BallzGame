@@ -27,6 +27,8 @@ public:
 
 	void RenderShadowMap(int lightIndex);
 
+	void RenderSkybox();
+
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
@@ -67,17 +69,21 @@ private:
 	ID3D11ShaderResourceView* menu;
 	ID3D11ShaderResourceView* redTexture;
 	ID3D11ShaderResourceView* blueTexture;
+	ID3D11ShaderResourceView* skybox;
+	ID3D11ShaderResourceView* regularBall;
 	ID3D11SamplerState* sampler;
 	ID3D11SamplerState* shadowSampler;
 
 	//Shadow Map
 	int shadowMapSize;
-
 	ID3D11RasterizerState* shadowRasterizer;
-
 	std::vector<DirectX::XMFLOAT4X4> shadowMatricies; //nth index is the shadow view matrix, and n+1 index is the shadow projection matrix
 	std::vector<ID3D11ShaderResourceView*> shadowSRVs;
 	std::vector<ID3D11DepthStencilView*> shadowDSVs;
+
+	//Skybox
+	ID3D11RasterizerState* skyRastState;
+	ID3D11DepthStencilState* skyDepthState;
 
 	bool mouseDown;
 
@@ -89,14 +95,17 @@ private:
 	void CreateGameField();
 	void CreateLights();
 	void SortCurrentEntities();
-
 	void CreateShadowMap();
+	void CreateSkybox();
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
 	SimpleVertexShader* vertexShaderNormal;
 	SimplePixelShader* pixelShaderNormal;
+	SimpleVertexShader* vertexShaderSky;
+	SimplePixelShader* pixelShaderSky;
+	SimplePixelShader* pixelShaderShiny;
 	SimpleVertexShader* vertexShaderShadow;
 
 	// The matrices to go from model space to screen space

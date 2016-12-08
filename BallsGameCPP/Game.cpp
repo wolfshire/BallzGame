@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Vertex.h"
 #include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
 #include <algorithm>
 
 // For the DirectX Math library
@@ -50,12 +51,17 @@ Game::~Game()
 	delete pixelShader;
 	delete vertexShaderNormal;
 	delete pixelShaderNormal;
+	delete vertexShaderSky;
+	delete pixelShaderSky;
+	delete pixelShaderShiny;
 	delete vertexShaderShadow;
 
 	delete renderer;
 	delete mainCamera;
 
 	shadowRasterizer->Release();
+	skyRastState->Release();
+	skyDepthState->Release();
 	shadowSampler->Release();
 
 	sampler->Release();
@@ -64,6 +70,7 @@ Game::~Game()
 	bricks->Release();
 	woodTexture->Release();
 	menu->Release();
+	skybox->Release();
 	redTexture->Release();
 	blueTexture->Release();
 
@@ -133,6 +140,7 @@ void Game::Init()
 	LoadShaders();
 	CreateMatrices();
 	CreateBasicGeometry();
+	CreateSkybox();
 
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -141,6 +149,7 @@ void Game::Init()
 
 	// Creating the renderer and passing it the shaders --added
 	renderer = new Renderer(context);
+	renderer->SetSkybox(skybox);
 
 	mainCamera = new Camera(width, height);
 
@@ -197,6 +206,17 @@ void Game::LoadShaders()
 	if (!vertexShaderShadow->LoadShaderFile(L"Debug/vertexShaderShadow.cso"))
 		vertexShaderShadow->LoadShaderFile(L"vertexShaderShadow.cso");
 
+	vertexShaderSky = new SimpleVertexShader(device, context);
+	if (!vertexShaderSky->LoadShaderFile(L"Debug/VertexShaderSky.cso"))
+		vertexShaderSky->LoadShaderFile(L"VertexShaderSky.cso");
+
+	pixelShaderSky = new SimplePixelShader(device, context);
+	if (!pixelShaderSky->LoadShaderFile(L"Debug/PixelShaderSky.cso"))
+		pixelShaderSky->LoadShaderFile(L"PixelShaderSky.cso");
+
+	pixelShaderShiny = new SimplePixelShader(device, context);
+	if (!pixelShaderShiny->LoadShaderFile(L"Debug/pixelShaderShiny.cso"))
+		pixelShaderShiny->LoadShaderFile(L"pixelShaderShiny.cso");
 	// You'll notice that the code above attempts to load each
 	// compiled shader file (.cso) from two different relative paths.
 
@@ -334,6 +354,14 @@ void Game::CreateBasicGeometry()
 		&redTexture
 		);
 
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/ballmaterial.jpg",
+		0,
+		&regularBall
+	);
+
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -360,6 +388,7 @@ void Game::CreateBasicGeometry()
 	materials.push_back(new Material(vertexShader, pixelShader, woodTexture, sampler));					// materials[3] -> basic material, wood texture
 	materials.push_back(new Material(vertexShader, pixelShader, redTexture, sampler));					// materials[4] -> basic material, red texture
 	materials.push_back(new Material(vertexShader, pixelShader, blueTexture, sampler));					// materials[5] -> basic material, blue texture
+	materials.push_back(new Material(vertexShader, pixelShaderShiny, regularBall, sampler));			// materials[6] -> shiny material, white texture
 
 	
 	//Setting material Color -Debug
@@ -374,7 +403,7 @@ void Game::CreateBasicGeometry()
 
 	//Creating Ball GameEntities
 	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[5] -> Ball (Sphere/Brick)
-	gameEntities.push_back(new GameEntity(meshes[1], materials[3]));									// gameEntities[6] -> Ball (Sphere/Wood)
+	gameEntities.push_back(new GameEntity(meshes[1], materials[6]));									// gameEntities[6] -> Ball (Sphere/Wood)
 	gameEntities.push_back(new GameEntity(meshes[1], materials[1]));									// gameEntities[7] -> Ball (Sphere/Brick)
 
 	//Creating player ball spawn objects
@@ -641,6 +670,29 @@ void Game::CreateShadowMap()
 	
 }
 
+void Game::CreateSkybox() {
+	
+	HRESULT I = CreateDDSTextureFromFile(device, L"Assets/Textures/SunnyCubeMap.dds", 0, &skybox);
+
+	// Create a rasterizer state so we can render backfaces
+	D3D11_RASTERIZER_DESC rsDesc = {};
+	rsDesc.FillMode = D3D11_FILL_SOLID;
+	rsDesc.CullMode = D3D11_CULL_FRONT;
+	rsDesc.DepthClipEnable = true;
+	device->CreateRasterizerState(&rsDesc, &skyRastState);
+
+	// Create a depth state so that we can accept pixels
+	// at a depth less than or EQUAL TO an existing depth
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL; // Make sure we can see the sky (at max depth)
+	device->CreateDepthStencilState(&dsDesc, &skyDepthState);
+
+
+
+}
+
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
 // For instance, updating our projection matrix's aspect ratio.
@@ -716,7 +768,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 
 		if (DEBUG_MODE) {
-			//mainCamera->Update(deltaTime);
+			mainCamera->Update(deltaTime);
 		}
 
 		if (GetAsyncKeyState(VK_F1) & 0x8000) {
@@ -770,7 +822,9 @@ void Game::Draw(float deltaTime, float totalTime)
 		renderer->SetShadowMap(shadowMatricies, shadowSRVs, shadowSampler);
 	}
 
-	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix());
+	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix()); 
+
+	RenderSkybox();
 
 	// Drawing font
 	m_spriteBatch->Begin();
@@ -907,6 +961,35 @@ void Game::RenderShadowMap(int lightIndex)
 
 }
 
+void Game::RenderSkybox() {
+
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
+
+	// Grab the buffers
+	ID3D11Buffer* skyVB = meshes[0]->GetVertexBuffer();
+	ID3D11Buffer* skyIB = meshes[0]->GetIndexBuffer();
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+	// Set up shaders
+	vertexShaderSky->SetMatrix4x4("view", mainCamera->getViewMatrix());
+	vertexShaderSky->SetMatrix4x4("projection", mainCamera->getProjectionMatrix());
+	vertexShaderSky->CopyAllBufferData();
+	vertexShaderSky->SetShader();
+
+	pixelShaderSky->SetShaderResourceView("Skybox", skybox);
+	pixelShaderSky->CopyAllBufferData();
+	pixelShaderSky->SetShader();
+
+	// Set the proper render states
+	context->RSSetState(skyRastState);
+	context->OMSetDepthStencilState(skyDepthState, 0);
+
+	// Actually draw
+	context->DrawIndexed(meshes[0]->GetIndexCount(), 0, 0);
+
+}
 
 #pragma region Mouse Input
 

@@ -26,6 +26,11 @@ void Renderer::SetShadowMap(std::vector<DirectX::XMFLOAT4X4> shadowMatricies, st
 	this->shadowSampler = shadowSampler;
 }
 
+void Renderer::SetSkybox(ID3D11ShaderResourceView* sky)
+{
+	skybox = sky;
+}
+
 void Renderer::Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 {
 	if (gameEntityList.size() != 0)
@@ -43,6 +48,7 @@ void Renderer::Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix)
 				gameEntity->getWorldMatrix(),
 				viewMatrix,
 				projectionMatrix,
+				skybox,
 				shadowMatricies,
 				shadowMaps,
 				shadowSampler

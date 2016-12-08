@@ -31,6 +31,7 @@ Texture2D ShadowMap			: register(t2);
 Texture2D ShadowMap2		: register(t3);
 Texture2D ShadowMap3		: register(t4);
 Texture2D ShadowMap4		: register(t5);
+TextureCube Sky				: register(t6);
 SamplerState basicSampler	: register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
 
@@ -179,6 +180,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample the shadow map
 	float shadowAmount4 = ShadowMap4.SampleCmpLevelZero(ShadowSampler, shadowUV, depthFromLight);
 
+	// Calculate reflection to the sky and sample
+	float4 skyColor = Sky.Sample(basicSampler, reflect(-toCamera, input.normal));
+
 	float3 finalColor = DirLightOneColor  +
 						PointLightOneColor  * shadowAmount +
 						PointLightTwoColor * shadowAmount2 +
@@ -189,5 +193,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 						specPLThree + 
 						specPLFour;
 
-	return float4(finalColor, 1);
+	float4 i = float4(finalColor, 1);
+
+	return lerp(skyColor, i, 0.9f);
 }

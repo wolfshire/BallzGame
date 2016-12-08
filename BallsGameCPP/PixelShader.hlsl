@@ -30,6 +30,7 @@ Texture2D ShadowMap			: register(t1);
 Texture2D ShadowMap2		: register(t2);
 Texture2D ShadowMap3		: register(t3);
 Texture2D ShadowMap4		: register(t4);
+TextureCube Sky				: register(t5);
 SamplerState basicSampler	: register(s0);
 SamplerComparisonState ShadowSampler : register(s1);
 

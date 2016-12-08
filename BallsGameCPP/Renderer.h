@@ -12,6 +12,7 @@ public:
 
 	void SetGameEntityList(std::vector<GameEntity*> list);
 	void SetShadowMap(std::vector<DirectX::XMFLOAT4X4> shadowMatricies, std::vector<ID3D11ShaderResourceView*> shadowMaps, ID3D11SamplerState * shadowSampler);
+	void SetSkybox(ID3D11ShaderResourceView * sky);
 	void Draw(XMFLOAT4X4 viewMatrix, XMFLOAT4X4 projectionMatrix);
 
 private:
@@ -21,6 +22,8 @@ private:
 	XMFLOAT4X4 worldMatrix;
 	XMFLOAT4X4 viewMatrix;
 	XMFLOAT4X4 projectionMatrix;
+
+	ID3D11ShaderResourceView* skybox;
 
 	ID3D11ShaderResourceView* shadowMap;
 	ID3D11SamplerState* shadowSampler;
