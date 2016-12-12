@@ -149,7 +149,7 @@ void Game::Init()
 
 	// Creating the renderer and passing it the shaders --added
 	renderer = new Renderer(context);
-	renderer->SetSkybox(skybox);
+	renderer->SetSkybox(skyboxBall);
 
 	mainCamera = new Camera(width, height);
 
@@ -392,7 +392,7 @@ void Game::CreateBasicGeometry()
 
 	
 	//Setting material Color -Debug
-	//materials[2]->SetSurfaceColor(XMFLOAT4(1, 1, 1, 1));
+	materials[6]->SetSurfaceColor(XMFLOAT4(0, 0, 0, 1));
 
 	//Creating Field GameEntities
 	gameEntities.push_back(new GameEntity(meshes[0], materials[0]));									// gameEntities[0] -> Game Field (Cube/Grass)
@@ -672,7 +672,9 @@ void Game::CreateShadowMap()
 
 void Game::CreateSkybox() {
 	
-	HRESULT I = CreateDDSTextureFromFile(device, L"Assets/Textures/SunnyCubeMap.dds", 0, &skybox);
+	HRESULT I = CreateDDSTextureFromFile(device, L"Assets/Textures/nightSky.dds", 0, &skybox);
+
+	I = CreateDDSTextureFromFile(device, L"Assets/Textures/nightSkytest.dds", 0, &skyboxBall);
 
 	// Create a rasterizer state so we can render backfaces
 	D3D11_RASTERIZER_DESC rsDesc = {};

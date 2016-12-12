@@ -86,7 +86,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(input.normal);
 
 	//Get texture color
-	float4 textureColor = Texture.Sample(basicSampler, input.uv);
+    float4 textureColor = Texture.Sample(basicSampler, input.uv);
 
 	//Calculate final Directional Colors
 	float3 DirLightOneColor = CalculateDirectionalLightColor(input.normal, DirLightOne, textureColor);
@@ -95,7 +95,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light One
 	float3 dirToPointLightOne = normalize(PointLightOne.Position - input.worldPos);
 	float pointLightAmount = saturate(dot(input.normal, dirToPointLightOne));
-	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	float3 PointLightOneColor = PointLightOne.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	float3 toCamera = normalize(CameraPosition - input.worldPos);	//----------------
 	float3 refl = reflect(-dirToPointLightOne, input.normal);		//	  SPECULAR
 	float specPLOne = pow(max(dot(refl, toCamera), 0), 168);		//----------------
@@ -103,21 +103,21 @@ float4 main(VertexToPixel input) : SV_TARGET
 	//Point Light Two
 	float3 dirToPointLightTwo = normalize(PointLightTwo.Position - input.worldPos);
 	pointLightAmount = saturate(dot(input.normal, dirToPointLightTwo));
-	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	float3 PointLightTwoColor = PointLightTwo.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	refl = reflect(-dirToPointLightTwo, input.normal);
 	float specPLTwo = pow(max(dot(refl, toCamera), 0), 168);
 
 	//Point Light Three
 	float3 dirToPointLightThree = normalize(PointLightThree.Position - input.worldPos);
 	pointLightAmount = saturate(dot(input.normal, dirToPointLightThree));
-	float3 PointLightThreeColor = PointLightThree.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	float3 PointLightThreeColor = PointLightThree.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	refl = reflect(-dirToPointLightThree, input.normal);
 	float specPLThree = pow(max(dot(refl, toCamera), 0), 168);
 
 	//Point Light Four
 	float3 dirToPointLightFour = normalize(PointLightFour.Position - input.worldPos);
 	pointLightAmount = saturate(dot(input.normal, dirToPointLightFour));
-	float3 PointLightFourColor = PointLightFour.Color * pointLightAmount * SurfaceColor * textureColor * 3;
+	float3 PointLightFourColor = PointLightFour.Color * pointLightAmount * SurfaceColor * textureColor * 10;
 	refl = reflect(-dirToPointLightFour, input.normal);
 	float specPLFour = pow(max(dot(refl, toCamera), 0), 168);
 
@@ -182,5 +182,5 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 	float4 i = float4(finalColor, 1);
 
-	return lerp(skyColor, i, 0.25f);
+	return lerp(skyColor, i, 0.35f);
 }
