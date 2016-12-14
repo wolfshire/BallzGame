@@ -1,8 +1,7 @@
+#pragma once 
+
 #include "Game.h"
-#include "Vertex.h"
-#include "WICTextureLoader.h"
-#include "DDSTextureLoader.h"
-#include <algorithm>
+
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -73,6 +72,18 @@ Game::~Game()
 	skybox->Release();
 	redTexture->Release();
 	blueTexture->Release();
+	explosion->Release();
+	particleDepthState->Release();
+	bsAlphaBlend->Release();
+	p1Win->Release();
+	p2Win->Release();
+	explosion->Release();
+
+	if (p1Score) delete p1Score;
+	if (p2Score) delete p2Score;
+	if (p1Balls) delete p1Balls;
+	if (p2Balls) delete p2Balls;
+	
 
 	if (ballManager) delete ballManager;
 	for each (Emitter* e in emitters)
@@ -95,6 +106,14 @@ Game::~Game()
 		delete name;
 	}
 	for each(GameEntity* name in menuEntities)
+	{
+		delete name;
+	}
+	for each(GameEntity* name in gameOver1Entities)
+	{
+		delete name;
+	}
+	for each(GameEntity* name in gameOver2Entities)
 	{
 		delete name;
 	}
@@ -128,16 +147,28 @@ Game::~Game()
 // --------------------------------------------------------
 void Game::Init()
 {
-	gameState = 1;
+	gameState = 0;
 	p1Selection = 3;
 	p2Selection = 3;
+
+	firePeriod = 0.25;
+	p2shootTimer = 0;
+	p1shootTimer = 0;
+
+	p1Balls = new int(8);
+	p2Balls = new int(8);
+
+	p1Score = new int(0);
+	p2Score = new int(0);
 
 	ballSpeed = 3.1;
 
 	shadowMapSize = 1024;
-	
-	ballManager = new BallManager();
+
+	ballManager = new BallManager(p1Score, p2Score, p1Balls, p2Balls);
 	emitters = std::vector<Emitter*>();
+
+	
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -155,6 +186,7 @@ void Game::Init()
 	// Creating the renderer and passing it the shaders --added
 	renderer = new Renderer(context);
 	renderer->SetSkybox(skyboxBall);
+	renderer->SetPaticleInfo(particleDepthState, bsAlphaBlend);
 
 	mainCamera = new Camera(width, height);
 
@@ -322,6 +354,22 @@ void Game::CreateBasicGeometry()
 	check = CreateWICTextureFromFile(
 		device,
 		context,
+		L"Assets/Textures/p1Win.png",
+		0,
+		&p1Win
+	);
+
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/p2Win.png",
+		0,
+		&p2Win
+	);
+
+	check = CreateWICTextureFromFile(
+		device,
+		context,
 		L"Assets/Textures/soccer.png",
 		0,
 		&bricks
@@ -371,10 +419,31 @@ void Game::CreateBasicGeometry()
 	check = CreateWICTextureFromFile(
 		device,
 		context,
-		L"Assets/Textures/explosion.png",
+		L"Assets/Textures/cloud.png",
 		0,
 		&explosion
 	);
+
+	// A depth state for the particles
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = true;
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Turns off depth writing
+	dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+	D3D11_BLEND_DESC bd = {};
+	bd.AlphaToCoverageEnable = false;
+	bd.IndependentBlendEnable = false;
+	bd.RenderTarget[0].BlendEnable = true;
+	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	device->CreateBlendState(&bd, &bsAlphaBlend);
 
 
 	D3D11_SAMPLER_DESC samplerDesc = {};
@@ -415,7 +484,9 @@ void Game::CreateBasicGeometry()
 	materials.push_back(new Material(vertexShader, pixelShader, redTexture, sampler));					// materials[4] -> basic material, red texture
 	materials.push_back(new Material(vertexShader, pixelShader, blueTexture, sampler));					// materials[5] -> basic material, blue texture
 	materials.push_back(new Material(vertexShader, pixelShaderShiny, regularBall, sampler));			// materials[6] -> shiny material, white texture
-	materials.push_back(new Material(vertexShader, pixelShader, explosion, sampler));							// materials[7] -> basic material, explosion
+	materials.push_back(new Material(vertexShader, pixelShader, explosion, sampler));					// materials[7] -> basic material, explosion
+	materials.push_back(new Material(vertexShader, pixelShader, p1Win, sampler));						// materials[8] -> basic material, p1win
+	materials.push_back(new Material(vertexShader, pixelShader, p2Win, sampler));						// materials[9] -> basic material, p2win
 
 	
 	//Setting material Color -Debug
@@ -466,9 +537,13 @@ void Game::CreateBasicGeometry()
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
-	
+
+	gameOver1Entities.push_back(new GameEntity(meshes[0], materials[8]));
+
+	gameOver2Entities.push_back(new GameEntity(meshes[0], materials[9]));
+
 	//Adding balls to the manager
-	ballManager->addBall(gameEntities[5], myVector(0, 0, .65f), myVector(0,.5f, 0), 1, .25, true);
+	ballManager->addBall(gameEntities[5], myVector(0, 0.1, .65f), myVector(0,0,0), 1, .25, true);
 	
 
 	//Setting Scales
@@ -483,6 +558,12 @@ void Game::CreateBasicGeometry()
 void Game::CreateMenu() {
 	menuEntities[0]->Rotate(0.0f, 0.0f, PI / 2.0f);
 	menuEntities[0]->SetScale(4.0f, 7.0f, 1.0f);
+
+	gameOver1Entities[0]->Rotate(0.0f, 0.0f, PI / 2.0f);
+	gameOver1Entities[0]->SetScale(4.0f, 7.0f, 1.0f);
+	gameOver2Entities[0]->Rotate(0.0f, 0.0f, PI / 2.0f);
+	gameOver2Entities[0]->SetScale(4.0f, 7.0f, 1.0f);
+
 }
 
 void Game::CreateGameField() {
@@ -631,6 +712,15 @@ void Game::SortCurrentEntities() {
 	for each(auto e in p2SelectEntities)
 		currentGameEntities.push_back(e);
 	
+
+	//getting all the ball Game Entities and adding them to the current entity list
+	std::vector<GameEntity*> list = ballManager->getBallGameEntities(); 
+	for each(auto e in list) {
+		currentGameEntities.push_back(e);
+	}
+
+	transparentIndex = currentGameEntities.size();
+
 	for each(auto e in emitters)
 	{
 		std::vector<GameEntity*> activeParticles = e->getActiveParticles();
@@ -643,12 +733,6 @@ void Game::SortCurrentEntities() {
 	std::vector<GameEntity*> ballParticles = ballManager->getActiveParticles();
 	for each(auto e in ballParticles)
 	{
-		currentGameEntities.push_back(e);
-	}
-
-	//getting all the ball Game Entities and adding them to the current entity list
-	std::vector<GameEntity*> list = ballManager->getBallGameEntities(); 
-	for each(auto e in list) {
 		currentGameEntities.push_back(e);
 	}
 }
@@ -780,6 +864,11 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 	}
 	if (gameState == 1) {
+		if (p1shootTimer > 0)
+			p1shootTimer -= deltaTime;
+		if (p2shootTimer > 0)
+			p2shootTimer -= deltaTime;
+
 		if (GetAsyncKeyState('W') & 0x1)
 		{
 			if (p1Selection > 0) {
@@ -796,11 +885,12 @@ void Game::Update(float deltaTime, float totalTime)
 				p1SelectEntities[p1Selection]->SetMaterial(materials[5]);
 			}
 		}
-		if (GetAsyncKeyState(VK_SPACE) & 0x1)
+		if (GetAsyncKeyState(VK_SPACE) & 0x1 && p1shootTimer <= 0 && *p1Balls > 0)
 		{
 			ballManager->addBall(gameEntities[6], myVector(p1SelectEntities[p1Selection]->getPosition().x, p1SelectEntities[p1Selection]->getPosition().y, p1SelectEntities[p1Selection]->getPosition().z), 
 				myVector(ballSpeed, 0, 0), 1, .125, false);
-
+			p1shootTimer = firePeriod;
+			*p1Balls -= 1;
 		}
 		if (GetAsyncKeyState(VK_UP) & 0x1)
 		{
@@ -818,10 +908,12 @@ void Game::Update(float deltaTime, float totalTime)
 				p2SelectEntities[p2Selection]->SetMaterial(materials[5]);
 			}
 		}
-		if (GetAsyncKeyState(VK_RCONTROL) & 0x1)
+		if (GetAsyncKeyState(VK_RCONTROL) & 0x1 && p2shootTimer <= 0 && *p2Balls > 0)
 		{
 			ballManager->addBall(gameEntities[6], myVector(p2SelectEntities[p2Selection]->getPosition().x, p2SelectEntities[p2Selection]->getPosition().y, p2SelectEntities[p2Selection]->getPosition().z),
 				myVector(-ballSpeed, 0, 0), 1, .125, false);
+			p2shootTimer = firePeriod;
+			*p2Balls -= 1;
 		}
 
 
@@ -840,6 +932,11 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 		
 		SortCurrentEntities();
+
+		if (*p1Score > 3)
+			gameState = 2;
+		if (*p2Score > 3)
+			gameState = 3;
 	}
 }
 
@@ -848,6 +945,7 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+
 	//Rendering the shadow map, uncomment to have no shadows
 	for (int i = 1; i <= 4; i++) {
 		RenderShadowMap(i);
@@ -870,19 +968,33 @@ void Game::Draw(float deltaTime, float totalTime)
 		1.0f,
 		0);
 
+
+	float factors[4] = { 1,1,1,1 };
+	context->OMSetBlendState(
+		bsAlphaBlend,
+		factors,
+		0xFFFFFFFF);
+
 	//Send list of Game Entities to the Renderer class
 	if (gameState == 0) {
 		renderer->SetGameEntityList(menuEntities);
 	}
+	if (gameState == 2) {
+		renderer->SetGameEntityList(gameOver1Entities);
+	}
+	if (gameState == 3) {
+		renderer->SetGameEntityList(gameOver2Entities);
+	}
 	if (gameState == 1) {
-		renderer->SetGameEntityList(currentGameEntities);
+		renderer->SetGameEntityList(currentGameEntities, transparentIndex);
 
 		pixelShader->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
 
 		pixelShaderNormal->SetFloat3("CameraPosition", mainCamera->getPosition()); //Setting camera position for specular lighting
 
-		renderer->SetShadowMap(shadowMatricies, shadowSRVs, shadowSampler);
+		
 	}
+	renderer->SetShadowMap(shadowMatricies, shadowSRVs, shadowSampler);
 
 	renderer->Draw(mainCamera->getViewMatrix(), mainCamera->getProjectionMatrix()); 
 
@@ -892,13 +1004,23 @@ void Game::Draw(float deltaTime, float totalTime)
 	m_spriteBatch->Begin();
 
 	// First text
-	const wchar_t* output = L"Score: 0\nBalls: 0";
+	std::string p1ScoreText = "Score: " + std::to_string(*p1Score) + "\nBalls: " + std::to_string(*p1Balls);
+	std::wstring str1(p1ScoreText.length(), L' ');
+
+	std::copy(p1ScoreText.begin(), p1ScoreText.end(), str1.begin());
+
+	const wchar_t* output = str1.c_str();
 	SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.0f;
 	m_font->DrawString(m_spriteBatch.get(), output,
 		m_p1FontPos, Colors::Red, 0.f, origin);
 
 	// Second Text
-	output = L"Score: 0\nBalls: 0";
+	std::string p2ScoreText = "Score: " + std::to_string(*p2Score) + "\nBalls: " + std::to_string(*p2Balls);
+	std::wstring str2(p2ScoreText.length(), L' ');
+
+	std::copy(p2ScoreText.begin(), p2ScoreText.end(), str2.begin());
+
+	output = str2.c_str();
 	origin = m_font->MeasureString(output) / 2.0f;
 	m_font->DrawString(m_spriteBatch.get(), output,
 		m_p2FontPos, Colors::Blue, 0.f, origin);

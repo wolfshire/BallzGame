@@ -2,6 +2,7 @@
 
 #include <DirectXMath.h>
 #include "GameEntity.h"
+#include "Game.h"
 
 struct myVector
 {
@@ -115,9 +116,15 @@ class Ball
 	GameEntity* mesh;
 
 	bool despawn;
-	bool isSoccerBall;
+	bool isSoccerBall; 
+	
+	int* p1Score;
+	int* p2Score;
+	int* p1Balls;
+	int* p2Balls;
+
 public:
-	Ball(GameEntity* mesh, myVector position, myVector velocity, float mass, float radius, bool isMain)
+	Ball(GameEntity* mesh, myVector position, myVector velocity, float mass, float radius, bool isMain, int* p1Score, int* p2Score, int* p1Balls, int* p2Balls)
 	{
 		this->mesh = new GameEntity(mesh);
 		this->position = position;
@@ -133,6 +140,11 @@ public:
 
 		this->despawn = false;
 		this->isSoccerBall = isMain;
+
+		this->p1Score = p1Score;
+		this->p2Score = p2Score;
+		this->p1Balls = p1Balls;
+		this->p2Balls = p2Balls;
 	}
 
 	~Ball()
@@ -145,8 +157,9 @@ public:
 		this->acceleration += force;
 	}
 
-	void update(float deltaTime)
+	bool update(float deltaTime)
 	{
+		bool hasScored = false;
 		this->velocity += this->acceleration * deltaTime;
 		this->position += this->velocity * deltaTime;
 
@@ -154,16 +167,48 @@ public:
 		this->mesh->SetTranslation(this->position.x, this->position.y, this->position.z);
 
 		// Check if walls are hit - bounce back
-		if (this->position.x + this->radius > this->xBound || this->position.x - this->radius < -this->xBound) {
-			if(!this->isSoccerBall) 
+		if (this->position.x + this->radius > this->xBound) {
+			if (!this->isSoccerBall)
+			{
 				this->despawn = true;
+				*p2Balls += 1;
+			}
+			else
+			{
+				this->position = myVector(0, 0.1, 0.65f);
+				this->velocity = myVector();
+				hasScored = true;
+				*p1Score += 1;
+			}
 			this->velocity.x *= -1;
+			this->position += this->velocity * deltaTime;
+		}
+
+		else if (this->position.x - this->radius < -this->xBound) {
+			if (!this->isSoccerBall)
+			{
+				this->despawn = true;
+				*p1Balls += 1;
+			}
+			else
+			{
+				this->position = myVector(0, 0.1, 0.65);
+				this->velocity = myVector();
+				hasScored = true;
+				*p2Score += 1;
+			}
+			this->velocity.x *= -1;
+			this->position += this->velocity * deltaTime;
 		}
 
 		if (this->position.y + this->radius > this->yBound || this->position.y - this->radius < -this->yBound)
+		{
 			this->velocity.y *= -1;
+			this->position += this->velocity * deltaTime;
+		}
 
 		this->position.z = -.65f;
+		return hasScored;
 	}
 
 	void unUpdate(float deltaTime)

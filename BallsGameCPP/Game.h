@@ -10,6 +10,11 @@
 #include "SpriteFont.h"
 #include "SimpleMath.h"
 #include "Emitter.h"
+#include <string>
+#include "Vertex.h"
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
+#include <algorithm>
 
 class Game 
 	: public DXCore
@@ -35,16 +40,29 @@ public:
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
+
+	int* p1Balls;
+	int* p2Balls;
+
+	int* p1Score;
+	int* p2Score;
 private:
 	//Gameplay variables
 	int gameState;
 	int p1Selection;
 	int p2Selection;
+	float firePeriod;
+	float p1shootTimer;
+	float p2shootTimer;
+
+
 
 	float ballSpeed;
 
 	//List of Game Entities, Meshes, and Materials
 	std::vector<GameEntity*> menuEntities;
+	std::vector<GameEntity*> gameOver1Entities;
+	std::vector<GameEntity*> gameOver2Entities;
 	std::vector<GameEntity*> gameEntities;
 	std::vector<GameEntity*> p1SelectEntities;
 	std::vector<GameEntity*> p2SelectEntities;
@@ -74,6 +92,8 @@ private:
 	ID3D11ShaderResourceView* skybox;
 	ID3D11ShaderResourceView* skyboxBall;
 	ID3D11ShaderResourceView* regularBall;
+	ID3D11ShaderResourceView* p1Win;
+	ID3D11ShaderResourceView* p2Win;
 	ID3D11SamplerState* sampler;
 	ID3D11SamplerState* shadowSampler;
 
@@ -132,5 +152,12 @@ private:
 	DirectX::SimpleMath::Vector2 m_p2FontPos;
 
 	bool DEBUG_MODE;
+
+	int transparentIndex;
+
+
+	
+	ID3D11DepthStencilState* particleDepthState;
+	ID3D11BlendState* bsAlphaBlend;
 };
 

@@ -16,11 +16,19 @@ class BallManager
 	Material* explosionMaterial;
 	float maxSpeed;
 
+	int* p1Score;
+	int* p2Score;
+	int* p1Balls;
+	int* p2Balls;
 public:
-	BallManager()
+	BallManager(int* p1Score, int* p2Score, int* p1Balls, int* p2Balls)
 	{
 		balls = new std::vector<Ball*>();
 		maxSpeed = 2;
+		this->p1Score = p1Score;
+		this->p2Score = p2Score;
+		this->p1Balls = p1Balls;
+		this->p2Balls = p2Balls;
 	}
 
 	~BallManager()
@@ -48,7 +56,7 @@ public:
 
 	void addBall(GameEntity* ballMesh, myVector position, myVector velocity, float mass, float radius, bool isMain)
 	{
-		this->balls->push_back(new Ball(ballMesh, position, velocity, mass, radius, isMain));
+		this->balls->push_back(new Ball(ballMesh, position, velocity, mass, radius, isMain, p1Score, p2Score, p1Balls, p2Balls)); 
 	}
 
 	std::vector<GameEntity*> getActiveParticles()
@@ -64,6 +72,7 @@ public:
 
 	void Update(float deltaTime)
 	{
+		bool hasScored = false;
 		for (int i = 0; i < this->explosions.size(); ++i)
 		{
 			if (!(this->explosions[i]->isAlive()))
@@ -81,7 +90,8 @@ public:
 		for (int i = 0; i < this->balls->size(); ++i)
 		{
 			Ball* ball = (*(this->balls))[i];
-			ball->update(deltaTime);
+			hasScored = ball->update(deltaTime);
+			if (hasScored) break;
 			if (ball->getDespawn())
 			{
 					//Despawn the ball here
@@ -89,6 +99,20 @@ public:
 					this->balls->erase(this->balls->begin() + i);
 			}
 		}
+		
+		if (hasScored)
+		{
+			for (int i = 1; i < this->balls->size(); ++i) 
+			{
+				delete (*balls)[i];
+				this->balls->erase(this->balls->begin() + i);
+				i--;
+			}
+			*p1Balls = 8;
+			*p2Balls = 8;
+		}
+
+
 		for (int i = 0; i < this->balls->size();++i)
 		{
 			for (int j = i + 1; j < this->balls->size();++j)
@@ -154,7 +178,7 @@ public:
 					myVector collisionPoint = (ballOnePos + ballTwoPos) / 2;
 
 					std::vector<GameEntity*> temp = std::vector<GameEntity*>();
-					for (int i = 0; i < 100; ++i)
+					for (int i = 0; i < 40; ++i)
 					{
 						temp.push_back(new GameEntity(explosionMesh, explosionMaterial));
 						temp[i]->SetScale(0.1, 0.1, 0.1);
