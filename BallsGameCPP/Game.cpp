@@ -75,7 +75,10 @@ Game::~Game()
 	blueTexture->Release();
 
 	if (ballManager) delete ballManager;
-	if (emitter) delete emitter;
+	for each (Emitter* e in emitters)
+	{
+		delete e;
+	}
 	//Deleting materials
 	for each (Material* name in materials)
 	{
@@ -113,14 +116,6 @@ Game::~Game()
 	{
 		name->Release();
 	}
-	for (auto entityList : particles)
-	{
-		for (auto entity : *entityList)
-		{
-			delete entity;
-		}
-		delete entityList;
-	}
 
 	// Clean up font
 	m_font.reset();
@@ -142,6 +137,7 @@ void Game::Init()
 	shadowMapSize = 1024;
 	
 	ballManager = new BallManager();
+	emitters = std::vector<Emitter*>();
 
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
@@ -432,13 +428,19 @@ void Game::CreateBasicGeometry()
 	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //5
 	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //6
 
-	particles.push_back(new std::vector<GameEntity*>());
+	/*
+	std::vector<GameEntity*> temp = std::vector<GameEntity*>();
 	for (int i = 0; i < 100; ++i)
 	{
-		particles[0]->push_back(new GameEntity(meshes[1], materials[4]));
+		temp.push_back(new GameEntity(meshes[1], materials[4]));
+		temp[i]->SetScale(0.1, 0.1, 0.1);
 	}
 
-	emitter = new Emitter(0.5, particles[0], myVector(0, 0, -2), 0.01);
+	emitters.push_back(new Emitter(0.5, &temp, myVector(0, 0, -2), 0.01));
+	*/
+	ballManager->setExpMesh(meshes[1]);
+	ballManager->setExpMat(materials[4]);
+
 
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
@@ -520,11 +522,6 @@ void Game::CreateGameField() {
 	p2SelectEntities[5]->SetTranslation(2.6f, -0.8f, -0.5f);
 	p2SelectEntities[6]->SetScale(0.1f, 0.1f, 0.1f);
 	p2SelectEntities[6]->SetTranslation(2.6f, -1.2f, -0.5f);
-
-	for (int i = 0; i < particles[0]->size(); ++i)
-	{
-		(*(particles[0]))[i]->SetScale(0.1, 0.1, 0.1);
-	}
 }
 
 // --------------------------------------------------------
@@ -611,9 +608,18 @@ void Game::SortCurrentEntities() {
 		currentGameEntities.push_back(e);
 	for each(auto e in p2SelectEntities)
 		currentGameEntities.push_back(e);
+	
+	for each(auto e in emitters)
+	{
+		std::vector<GameEntity*> activeParticles = e->getActiveParticles();
+		for each(auto e in activeParticles)
+		{
+			currentGameEntities.push_back(e);
+		}
+	}
 
-	std::vector<GameEntity*> activeParticles = emitter->getActiveParticles();
-	for each(auto e in activeParticles)
+	std::vector<GameEntity*> ballParticles = ballManager->getActiveParticles();
+	for each(auto e in ballParticles)
 	{
 		currentGameEntities.push_back(e);
 	}
@@ -806,7 +812,10 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 
 		ballManager->Update(deltaTime);
-		emitter->update(deltaTime);
+		for each (auto e in emitters)
+		{
+			e->update(deltaTime);
+		}
 		
 		SortCurrentEntities();
 	}

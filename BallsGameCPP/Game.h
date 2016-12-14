@@ -49,7 +49,6 @@ private:
 	std::vector<GameEntity*> p1SelectEntities;
 	std::vector<GameEntity*> p2SelectEntities;
 	std::vector<GameEntity*> currentGameEntities;
-	std::vector<std::vector<GameEntity*>*> particles;
 	std::vector<Mesh*> meshes;
 	std::vector<Material*> materials;
 
@@ -121,7 +120,7 @@ private:
 	POINT prevMousePos;
 
 	BallManager* ballManager;
-	Emitter* emitter;
+	std::vector<Emitter*> emitters;
 
 	// Font related objects
 	std::unique_ptr<DirectX::SpriteFont> m_font;

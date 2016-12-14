@@ -3,10 +3,17 @@
 #include <vector>
 #include <cmath>
 #include "Ball.h"
+#include "Emitter.h"
+#include "Mesh.h"
+#include "Material.h"
+
 
 class BallManager
 {
 	std::vector<Ball*>* balls;
+	std::vector<Emitter*> explosions;
+	Mesh* explosionMesh;
+	Material* explosionMaterial;
 	float maxSpeed;
 
 public:
@@ -23,6 +30,20 @@ public:
 			delete (*balls)[i];
 		}
 		delete balls;
+		for (int i = 0; i < this->explosions.size(); ++i)
+		{
+			delete this->explosions[i];
+		}
+	}
+
+	void setExpMesh(Mesh* explosionMesh)
+	{
+		this->explosionMesh = explosionMesh;
+	}
+
+	void setExpMat(Material* explosionMaterial)
+	{
+		this->explosionMaterial = explosionMaterial;
 	}
 
 	void addBall(GameEntity* ballMesh, myVector position, myVector velocity, float mass, float radius, bool isMain)
@@ -30,8 +51,33 @@ public:
 		this->balls->push_back(new Ball(ballMesh, position, velocity, mass, radius, isMain));
 	}
 
+	std::vector<GameEntity*> getActiveParticles()
+	{
+		std::vector<GameEntity*> toReturn = std::vector<GameEntity*>();
+		for (auto& emitter : this->explosions)
+		{
+			std::vector<GameEntity*> temp = emitter->getActiveParticles();
+			toReturn.insert(toReturn.end(), temp.begin(), temp.end());
+		}
+		return toReturn;
+	}
+
 	void Update(float deltaTime)
 	{
+		for (int i = 0; i < this->explosions.size(); ++i)
+		{
+			if (!(this->explosions[i]->isAlive()))
+			{
+				delete this->explosions[i];
+				this->explosions.erase(this->explosions.begin() + i);
+				i--;
+			}
+		}
+		for (auto& emitter : explosions)
+		{
+			emitter->update(deltaTime);
+		}
+
 		for (int i = 0; i < this->balls->size(); ++i)
 		{
 			Ball* ball = (*(this->balls))[i];
@@ -104,6 +150,17 @@ public:
 
 					(*balls)[i]->update(deltaTime);
 					(*balls)[j]->update(deltaTime);
+
+					myVector collisionPoint = (ballOnePos + ballTwoPos) / 2;
+
+					std::vector<GameEntity*> temp = std::vector<GameEntity*>();
+					for (int i = 0; i < 100; ++i)
+					{
+						temp.push_back(new GameEntity(explosionMesh, explosionMaterial));
+						temp[i]->SetScale(0.1, 0.1, 0.1);
+					}
+
+					explosions.push_back(new Emitter(0.5, &temp, collisionPoint, 0.01, 1));
 				}
 			}
 		}
