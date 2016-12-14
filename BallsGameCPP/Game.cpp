@@ -368,6 +368,15 @@ void Game::CreateBasicGeometry()
 	);
 
 
+	check = CreateWICTextureFromFile(
+		device,
+		context,
+		L"Assets/Textures/explosion.png",
+		0,
+		&explosion
+	);
+
+
 	D3D11_SAMPLER_DESC samplerDesc = {};
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -382,6 +391,18 @@ void Game::CreateBasicGeometry()
 	meshes.push_back(new Mesh("../Assets/Models/cube.obj", device));									//meshes[0] - > Cube Model
 	meshes.push_back(new Mesh("../Assets/Models/sphere.obj", device));									//meshes[1] - > Sphere Model
 
+	Vertex vertices[] =
+	{
+		{ XMFLOAT3(-1.0f,-1.0f,0.0f), XMFLOAT2(0,0), XMFLOAT3(0,0,-1), XMFLOAT3(1,0,0) },
+		{ XMFLOAT3(-1.0f,+1.0f,0.0f), XMFLOAT2(0,1), XMFLOAT3(0,0,-1), XMFLOAT3(1,0,0) },
+		{ XMFLOAT3(+1.0f,-1.0f,0.0f), XMFLOAT2(1,0), XMFLOAT3(0,0,-1), XMFLOAT3(1,0,0) },
+		{ XMFLOAT3(+1.0f,+1.0f,0.0f), XMFLOAT2(1,1), XMFLOAT3(0,0,-1), XMFLOAT3(1,0,0) },
+	};
+
+	unsigned int indices[] = { 0,3,2,0,1,3 };
+
+	meshes.push_back(new Mesh(vertices, 4, indices, 6, device));										//meshes[2] - > Quad
+
 	//Creating materials
 	//materials with normals
 	materials.push_back(new Material(vertexShaderNormal, pixelShaderNormal, gamefield, sampler));		// materials[0] -> basic material, grassy field texture, has normal
@@ -394,6 +415,7 @@ void Game::CreateBasicGeometry()
 	materials.push_back(new Material(vertexShader, pixelShader, redTexture, sampler));					// materials[4] -> basic material, red texture
 	materials.push_back(new Material(vertexShader, pixelShader, blueTexture, sampler));					// materials[5] -> basic material, blue texture
 	materials.push_back(new Material(vertexShader, pixelShaderShiny, regularBall, sampler));			// materials[6] -> shiny material, white texture
+	materials.push_back(new Material(vertexShader, pixelShader, explosion, sampler));							// materials[7] -> basic material, explosion
 
 	
 	//Setting material Color -Debug
@@ -438,8 +460,8 @@ void Game::CreateBasicGeometry()
 
 	emitters.push_back(new Emitter(0.5, &temp, myVector(0, 0, -2), 0.01));
 	*/
-	ballManager->setExpMesh(meshes[1]);
-	ballManager->setExpMat(materials[4]);
+	ballManager->setExpMesh(meshes[2]);
+	ballManager->setExpMat(materials[7]);
 
 
 	//Creating MenuEntities

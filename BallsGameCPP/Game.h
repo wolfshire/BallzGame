@@ -66,6 +66,7 @@ private:
 	ID3D11ShaderResourceView* gamefield;
 	ID3D11ShaderResourceView* gamefieldNormal; //Normal
 	ID3D11ShaderResourceView* bricks;
+	ID3D11ShaderResourceView* explosion;
 	ID3D11ShaderResourceView* woodTexture; 
 	ID3D11ShaderResourceView* menu;
 	ID3D11ShaderResourceView* redTexture;
