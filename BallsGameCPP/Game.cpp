@@ -861,6 +861,16 @@ void Game::Update(float deltaTime, float totalTime)
 		if (GetAsyncKeyState(VK_SPACE) & 0x8000) 
 		{
 			gameState = 1;
+			*p1Balls = 8;
+			*p1Score = 0;
+			*p2Balls = 8;
+			*p2Score = 0;
+		}
+	}
+	if (gameState == 2 || gameState == 3) {
+		if (GetAsyncKeyState(VK_RETURN) & 0x8000)
+		{
+			gameState = 0;
 		}
 	}
 	if (gameState == 1) {
