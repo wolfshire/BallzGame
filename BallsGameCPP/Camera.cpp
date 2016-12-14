@@ -112,10 +112,10 @@ void Camera::Update(float deltaTime)
 		position.y += v.y * deltaTime * cameraSpeed;
 		position.z += v.z * deltaTime * cameraSpeed;
 	}
-	if (GetAsyncKeyState(VK_SPACE) & 0x8000) { //up
+	if (GetAsyncKeyState('V') & 0x8000) { //up
 		position.y += cameraSpeed * deltaTime;
 	}
-	if (GetAsyncKeyState('X') & 0x8000) { //down
+	if (GetAsyncKeyState('B') & 0x8000) { //down
 		position.y -= cameraSpeed * deltaTime;
 	}
 	if (GetAsyncKeyState(VK_NUMPAD4) & 0x8000) { //debugRotation
