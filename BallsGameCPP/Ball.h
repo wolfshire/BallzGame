@@ -20,6 +20,13 @@ struct myVector
 	float magSquared() { return (this->x * this->x) + (this->y * this->y) + (this->z * this->z); }
 
 	float dot(myVector other) { return (this->x * other.x) + (this->y * other.y) + (this->z * other.z); }
+
+	static myVector randVector()
+	{
+		return myVector((static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2))) - 1,
+						(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2))) - 1,
+						(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 2))) - 1);
+	}
 #pragma region Operators
 	friend myVector operator+(const myVector &v1, const myVector &v2)
 	{

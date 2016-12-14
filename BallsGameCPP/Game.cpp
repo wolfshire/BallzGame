@@ -75,6 +75,7 @@ Game::~Game()
 	blueTexture->Release();
 
 	if (ballManager) delete ballManager;
+	if (emitter) delete emitter;
 	//Deleting materials
 	for each (Material* name in materials)
 	{
@@ -111,6 +112,14 @@ Game::~Game()
 	for each(ID3D11DepthStencilView* name in shadowDSVs)
 	{
 		name->Release();
+	}
+	for (auto entityList : particles)
+	{
+		for (auto entity : *entityList)
+		{
+			delete entity;
+		}
+		delete entityList;
 	}
 
 	// Clean up font
@@ -423,6 +432,14 @@ void Game::CreateBasicGeometry()
 	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //5
 	p2SelectEntities.push_back(new GameEntity(meshes[0], materials[4])); //6
 
+	particles.push_back(new std::vector<GameEntity*>());
+	for (int i = 0; i < 100; ++i)
+	{
+		particles[0]->push_back(new GameEntity(meshes[1], materials[4]));
+	}
+
+	emitter = new Emitter(0.5, particles[0], myVector(0, 0, -2), 0.01);
+
 	//Creating MenuEntities
 	menuEntities.push_back(new GameEntity(meshes[0], materials[2]));									// menuEntities[0] -> Menu
 	
@@ -503,6 +520,11 @@ void Game::CreateGameField() {
 	p2SelectEntities[5]->SetTranslation(2.6f, -0.8f, -0.5f);
 	p2SelectEntities[6]->SetScale(0.1f, 0.1f, 0.1f);
 	p2SelectEntities[6]->SetTranslation(2.6f, -1.2f, -0.5f);
+
+	for (int i = 0; i < particles[0]->size(); ++i)
+	{
+		(*(particles[0]))[i]->SetScale(0.1, 0.1, 0.1);
+	}
 }
 
 // --------------------------------------------------------
@@ -589,6 +611,12 @@ void Game::SortCurrentEntities() {
 		currentGameEntities.push_back(e);
 	for each(auto e in p2SelectEntities)
 		currentGameEntities.push_back(e);
+
+	std::vector<GameEntity*> activeParticles = emitter->getActiveParticles();
+	for each(auto e in activeParticles)
+	{
+		currentGameEntities.push_back(e);
+	}
 
 	//getting all the ball Game Entities and adding them to the current entity list
 	std::vector<GameEntity*> list = ballManager->getBallGameEntities(); 
@@ -776,6 +804,7 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 
 		ballManager->Update(deltaTime);
+		emitter->update(deltaTime);
 		
 		SortCurrentEntities();
 	}

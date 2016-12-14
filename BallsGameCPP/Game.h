@@ -9,6 +9,7 @@
 #include "BallManager.h"
 #include "SpriteFont.h"
 #include "SimpleMath.h"
+#include "Emitter.h"
 
 class Game 
 	: public DXCore
@@ -48,6 +49,7 @@ private:
 	std::vector<GameEntity*> p1SelectEntities;
 	std::vector<GameEntity*> p2SelectEntities;
 	std::vector<GameEntity*> currentGameEntities;
+	std::vector<std::vector<GameEntity*>*> particles;
 	std::vector<Mesh*> meshes;
 	std::vector<Material*> materials;
 
@@ -118,6 +120,7 @@ private:
 	POINT prevMousePos;
 
 	BallManager* ballManager;
+	Emitter* emitter;
 
 	// Font related objects
 	std::unique_ptr<DirectX::SpriteFont> m_font;
