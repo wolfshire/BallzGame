@@ -72,6 +72,7 @@ private:
 	ID3D11ShaderResourceView* redTexture;
 	ID3D11ShaderResourceView* blueTexture;
 	ID3D11ShaderResourceView* skybox;
+	ID3D11ShaderResourceView* skyboxBall;
 	ID3D11ShaderResourceView* regularBall;
 	ID3D11SamplerState* sampler;
 	ID3D11SamplerState* shadowSampler;
