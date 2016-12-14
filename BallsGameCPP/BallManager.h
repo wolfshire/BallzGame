@@ -57,6 +57,11 @@ public:
 					myVector ballOneVel = (*balls)[i]->getVelocity();
 					myVector ballTwoVel = (*balls)[j]->getVelocity();
 
+					if (ballOneVel.magSquared() == 0)
+						ballOneVel.x = 0.000000000001;
+					if (ballTwoVel.magSquared() == 0)
+						ballTwoVel.x = 0.000000000001;
+
 					myVector ballOnePos = (*balls)[i]->getPosition(); 
 					myVector ballTwoPos = (*balls)[j]->getPosition();
 
