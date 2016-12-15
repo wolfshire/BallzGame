@@ -51,7 +51,7 @@ struct VertexToPixel
 	float3 normal			: NORMAL;
 	float3 tangent			: TANGENT;
 	float3 worldPos			: POSITION;
-	float2 uv				: TEXTCOORD;
+	float2 uv				: TEXCOORD;
 	float4 posForShadow		: TEXCOORD1;
 	float4 posForShadow2	: TEXCOORD2;
 	float4 posForShadow3	: TEXCOORD3;

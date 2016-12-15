@@ -34,7 +34,7 @@ struct VertexShaderInput
 	//  |    |                |
 	//  v    v                v
 	float3 position		: POSITION;     // XYZ position
-	float2 uv			: TEXTCOORD;
+	float2 uv			: TEXCOORD;
 	float3 normal		: NORMAL;
 };
 
@@ -53,7 +53,7 @@ struct VertexToPixel
 	float4 position			: SV_POSITION;	// XYZW position (System Value Position)
 	float3 normal			: NORMAL;
 	float3 worldPos			: POSITION;
-	float2 uv				: TEXTCOORD;
+	float2 uv				: TEXCOORD;
 	float4 posForShadow		: TEXCOORD1;
 	float4 posForShadow2	: TEXCOORD2;
 	float4 posForShadow3	: TEXCOORD3;

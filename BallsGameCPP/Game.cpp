@@ -74,10 +74,10 @@ Game::~Game()
 	blueTexture->Release();
 	explosion->Release();
 	particleDepthState->Release();
+	skyboxBall->Release();
 	bsAlphaBlend->Release();
 	p1Win->Release();
 	p2Win->Release();
-	explosion->Release();
 
 	if (p1Score) delete p1Score;
 	if (p2Score) delete p2Score;
