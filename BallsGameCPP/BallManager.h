@@ -178,7 +178,7 @@ public:
 					myVector collisionPoint = (ballOnePos + ballTwoPos) / 2;
 
 					std::vector<GameEntity*> temp = std::vector<GameEntity*>();
-					for (int i = 0; i < 40; ++i)
+					for (int i = 0; i < 10; ++i)
 					{
 						temp.push_back(new GameEntity(explosionMesh, explosionMaterial));
 						temp[i]->SetScale(0.1, 0.1, 0.1);
