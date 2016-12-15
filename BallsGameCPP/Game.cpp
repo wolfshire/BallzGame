@@ -1010,32 +1010,35 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	RenderSkybox();
 
-	// Drawing font
-	m_spriteBatch->Begin();
+	if (gameState == 1)
+	{
+		// Drawing font
+		m_spriteBatch->Begin();
 
-	// First text
-	std::string p1ScoreText = "Score: " + std::to_string(*p1Score) + "\nBalls: " + std::to_string(*p1Balls);
-	std::wstring str1(p1ScoreText.length(), L' ');
+		// First text
+		std::string p1ScoreText = "Score: " + std::to_string(*p1Score) + "\nBalls: " + std::to_string(*p1Balls);
+		std::wstring str1(p1ScoreText.length(), L' ');
 
-	std::copy(p1ScoreText.begin(), p1ScoreText.end(), str1.begin());
+		std::copy(p1ScoreText.begin(), p1ScoreText.end(), str1.begin());
 
-	const wchar_t* output = str1.c_str();
-	SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.0f;
-	m_font->DrawString(m_spriteBatch.get(), output,
-		m_p1FontPos, Colors::Red, 0.f, origin);
+		const wchar_t* output = str1.c_str();
+		SimpleMath::Vector2 origin = m_font->MeasureString(output) / 2.0f;
+		m_font->DrawString(m_spriteBatch.get(), output,
+			m_p1FontPos, Colors::Red, 0.f, origin);
 
-	// Second Text
-	std::string p2ScoreText = "Score: " + std::to_string(*p2Score) + "\nBalls: " + std::to_string(*p2Balls);
-	std::wstring str2(p2ScoreText.length(), L' ');
+		// Second Text
+		std::string p2ScoreText = "Score: " + std::to_string(*p2Score) + "\nBalls: " + std::to_string(*p2Balls);
+		std::wstring str2(p2ScoreText.length(), L' ');
 
-	std::copy(p2ScoreText.begin(), p2ScoreText.end(), str2.begin());
+		std::copy(p2ScoreText.begin(), p2ScoreText.end(), str2.begin());
 
-	output = str2.c_str();
-	origin = m_font->MeasureString(output) / 2.0f;
-	m_font->DrawString(m_spriteBatch.get(), output,
-		m_p2FontPos, Colors::Blue, 0.f, origin);
+		output = str2.c_str();
+		origin = m_font->MeasureString(output) / 2.0f;
+		m_font->DrawString(m_spriteBatch.get(), output,
+			m_p2FontPos, Colors::Blue, 0.f, origin);
 
-	m_spriteBatch->End();
+		m_spriteBatch->End();
+	}
 
 	// Reset the states!
 	context->RSSetState(0);
