@@ -151,7 +151,7 @@ void Game::Init()
 	p1Selection = 3;
 	p2Selection = 3;
 
-	firePeriod = 0.25;
+	firePeriod = 0.35;
 	p2shootTimer = 0;
 	p1shootTimer = 0;
 
@@ -212,7 +212,7 @@ void Game::Init()
 	m_p2FontPos.x = width * 5 / 6;
 	m_p2FontPos.y = height / 16;
 
-	DEBUG_MODE = true;
+	DEBUG_MODE = false;
 }
 
 // --------------------------------------------------------
@@ -943,9 +943,9 @@ void Game::Update(float deltaTime, float totalTime)
 		
 		SortCurrentEntities();
 
-		if (*p1Score > 3)
+		if (*p1Score > 2)
 			gameState = 2;
-		if (*p2Score > 3)
+		if (*p2Score > 2)
 			gameState = 3;
 	}
 }
